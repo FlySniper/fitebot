@@ -1,9 +1,14 @@
 import discord
 from threading import Thread
 from time import sleep
+
+import mysql
 import yaml
 
-prefix = "!"
+from commands.mmr_commands import score_match, register
+from model import db
+
+prefix = "?"
 
 
 def refresh():
@@ -22,11 +27,16 @@ def openConfig():
 
 
 class MyClient(discord.Client):
-
     config = openConfig()
 
     async def on_ready(self):
         print("Bot Starting")
+        db.connection = mysql.connector.connect(
+            host=self.config["mysql-hostname"],
+            database=self.config["mysql-database"],
+            user=self.config["mysql-user"],
+            password=self.config["mysql-password"]
+        )
         refreshThread = Thread(target=refresh)
         refreshThread.start()
 
@@ -34,6 +44,7 @@ class MyClient(discord.Client):
         if not message.content.startswith(prefix):
             return
         commandArgs = message.content[1:].split(" ")
+        print(commandArgs[0])
         if message.channel.type == "dm":
             print("DM Command: " + message.content)
             if commandArgs[0] == "queue":
@@ -58,11 +69,11 @@ class MyClient(discord.Client):
             if commandArgs[0] == "gamelimit":
                 pass
             if commandArgs[0] == "register":
-                pass
+                await message.channel.send(embed=await register(self, message.author.id, message.author.tag))
             if commandArgs[0] == "iwin" or commandArgs[0] == "iwon":
-                pass
+                await message.channel.send(embed=await score_match(commandArgs, self, "<@" + str(message.author.id) + ">", 1, True, False))
             if commandArgs[0] == "ilose" or commandArgs[0] == "ilost" or commandArgs[0] == "iloss":
-                pass
+                await message.channel.send(embed=await score_match(commandArgs, self, "<@" + str(message.author.id) + ">", 2, True, False))
             if commandArgs[0] == "help" or commandArgs[0] == "ranked":
                 pass
             if commandArgs[0] == "leaderboard":
@@ -81,7 +92,7 @@ class MyClient(discord.Client):
             if commandArgs[0] == "setelo":
                 pass
             if commandArgs[0] == "forcewin":
-                pass
+                await message.channel.send(embed=await score_match(commandArgs, self, "<@" + str(message.author.id) + ">", 1, True, True))
 
 
 client = MyClient()

@@ -1,4 +1,3 @@
-from client import MyClient
 from model.db import dbQuery
 
 
@@ -19,8 +18,8 @@ class LeaderboardEntry:
             self.queryUser(userId)
 
     def queryUser(self, userId):
-        result = dbQuery("SELECT * FROM mmr_leaderboard where id='%d'", (userId,))
-        if result is None or len(result) != 0:
+        result = dbQuery("SELECT * FROM mmr_leaderboard where id = %s", (userId,))
+        if result is None or len(result) == 0:
             return None
         self.id = result[0][0]
         self.elo = result[0][1]
@@ -31,9 +30,9 @@ class LeaderboardEntry:
         self.gamesThisSeasonWon = result[0][6]
         self.seasonHigh = result[0][7]
 
-    def queryLeaderboard(self):
-        gameLimit = MyClient.config["game-limit-count"]
-        results = dbQuery("SELECT * FROM mmr_leaderboard where isBanned=false and gamesThisSeason>='%d'",
+    def queryLeaderboard(self, client):
+        gameLimit = client.config["game-limit-count"]
+        results = dbQuery("SELECT * FROM mmr_leaderboard where isBanned=false and gamesThisSeason>=%d",
                           (gameLimit,))
         if results is None or len(results) != 0:
             return []

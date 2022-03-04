@@ -9,6 +9,9 @@ def mmr_calc(config, leaderboardEntry1, leaderboardEntry2, victory, updateStats)
     r1 = (leaderboardEntry1.elo / divider) ** power
     r2 = (leaderboardEntry2.elo / divider) ** power
 
+    if r1 == 0.0 and r2 == 0.0:  # Prevent division by 0
+        r1 = 0.001
+        r2 = 0.001
     e1 = r1 / (r1 + r2)
     e2 = r2 / (r1 + r2)
 
