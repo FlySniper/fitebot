@@ -1,10 +1,13 @@
-def mmr_calc(config, leaderboardEntry1, leaderboardEntry2, victory, updateStats):
+from model.config import config
+
+
+def mmr_calc(leaderboardEntry1, leaderboardEntry2, victory, updateStats):
     maxDiff = config["mmr-points-bet"]
     divider = config["mmr-elo-divide"]
     power = config["mmr-power"]
 
-    p1Adjustments = getAdjustments(config, leaderboardEntry1.elo)
-    p2Adjustments = getAdjustments(config, leaderboardEntry2.elo)
+    p1Adjustments = getAdjustments(leaderboardEntry1.elo)
+    p2Adjustments = getAdjustments(leaderboardEntry2.elo)
 
     r1 = (leaderboardEntry1.elo / divider) ** power
     r2 = (leaderboardEntry2.elo / divider) ** power
@@ -31,6 +34,11 @@ def mmr_calc(config, leaderboardEntry1, leaderboardEntry2, victory, updateStats)
     diff2 = maxDiff * (s2 - min(1.0, max(0.0, e2)))
     leaderboardEntry1.elo += diff1
     leaderboardEntry2.elo += diff2
+    if config["mmr-minimum-enabled"]:
+        if leaderboardEntry1.elo < config["mmr-minimum"]:
+            leaderboardEntry1.elo = config["mmr-minimum"]
+        if leaderboardEntry2.elo < config["mmr-minimum"]:
+            leaderboardEntry2.elo = config["mmr-minimum"]
     if updateStats:
         leaderboardEntry1.gamesThisDecay += 1
         leaderboardEntry2.gamesThisDecay += 1
@@ -47,7 +55,7 @@ def mmr_calc(config, leaderboardEntry1, leaderboardEntry2, victory, updateStats)
     leaderboardEntry2.updateUser()
 
 
-def getAdjustments(config, elo):
+def getAdjustments(elo):
     scales = config["mmr-scales"]
     victoryAdjustment = 0.0
     defeatAdjustment = 0.0

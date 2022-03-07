@@ -1,31 +1,57 @@
 import discord
 
 from controller.mmr_calculations import mmr_calc
+from model.config import config
 from model.mmr_leaderboard import LeaderboardEntry
 
 
-async def register(client, user, tag):
-    player = LeaderboardEntry()
-    player.id = user
-    player.elo = client.config["mmr-start-value"]
-    player.discordTag = tag
-    player.isBanned = False
-    player.gamesThisDecay = 0
-    player.gamesThisSeason = 0
-    player.gamesThisSeasonWon = 0
-    player.seasonHigh = player.elo
-    player.insertUser()
+async def stats(client, user):
+    player = LeaderboardEntry(user)
+    if player.id == 0:
+        embed = discord.embeds.Embed()
+        embed.title = "Your Statistics"
+        embed.color = 0x20872c
+        embed.description = "Error: user is not registered for ranked matches. Use the `register` command to begin"
+        return embed
+    description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisDecay, config["mmr-decay-games"], player.gamesThisSeason, player.gamesThisSeasonWon, player.seasonHigh)
+    if config["mmr-decay-every"].lower() == "never":
+        description = "MMR: {:.2f}\nGames this Season: {:d}\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisSeason, player.gamesThisSeasonWon, player.seasonHigh)
     embed = discord.embeds.Embed()
-    embed.title = "Registration"
+    embed.title = "Your Statistics"
     embed.color = 0x20872c
-    embed.description = "<@{:d}> is now registered to play ranked games".format(user)
+    embed.description = description
     return embed
+
+
+async def register(client, user, tag):
+    player = LeaderboardEntry(user)
+    if player.id == 0:
+        player.id = user
+        player.elo = config["mmr-start-value"]
+        player.discordTag = tag
+        player.isBanned = False
+        player.gamesThisDecay = 0
+        player.gamesThisSeason = 0
+        player.gamesThisSeasonWon = 0
+        player.seasonHigh = player.elo
+        player.insertUser()
+        embed = discord.embeds.Embed()
+        embed.title = "Registration"
+        embed.color = 0x20872c
+        embed.description = "<@{:d}> is now registered to play ranked games".format(user)
+        return embed
+    else:
+        embed = discord.embeds.Embed()
+        embed.title = "Registration"
+        embed.color = 0x20872c
+        embed.description = "<@{:d}> is already registered to play ranked games".format(user)
+        return embed
 
 
 async def score_match(args, client, user1, victory, updateStats, forceWin):
     if len(args) == 3 and forceWin:
-        user1 = args[1]
-        user2 = args[2]
+        user1 = "<@" + str(args[1]) + ">"
+        user2 = "<@" + str(args[2]) + ">"
     elif len(args) == 2 and not forceWin:
         user2 = args[1]
     else:
@@ -41,15 +67,15 @@ async def score_match(args, client, user1, victory, updateStats, forceWin):
         if id1.isnumeric() and id2.isnumeric() and id1 != id2:
             player1 = LeaderboardEntry(int(id1))
             player2 = LeaderboardEntry(int(id2))
-            if player1 is None or player2 is None:
+            if player1.id == 0 or player2.id == 0:
                 embed = discord.embeds.Embed()
                 embed.title = "Manual Entry Results"
                 embed.color = 0x20872c
-                embed.description = "Error: Player not found on the leaderboard, please register to play ranked games"
+                embed.description = "Error: Player not found on the leaderboard, please register using the `register` command to play ranked games"
                 return embed
             player1OldElo = player1.elo
             player2OldElo = player2.elo
-            mmr_calc(client.config, player1, player2, victory, updateStats)
+            mmr_calc(player1, player2, victory, updateStats)
             description = "<@{:d}> won and went from {:.2f} to {:.2f} MMR\n\n<@{:d}> lost and went from {:.2f} to {:.2f} MMR"
             if victory == 1:
                 description = description.format(player1.id, player1OldElo, player1.elo, player2.id, player2OldElo,

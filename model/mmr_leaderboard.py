@@ -23,7 +23,7 @@ class LeaderboardEntry:
             return None
         self.id = result[0][0]
         self.elo = result[0][1]
-        self.discordTag = result[0][2]
+        self.discordTag = result[0][2].decode()
         self.isBanned = result[0][3]
         self.gamesThisDecay = result[0][4]
         self.gamesThisSeason = result[0][5]
@@ -32,7 +32,7 @@ class LeaderboardEntry:
 
     def queryLeaderboard(self, client):
         gameLimit = client.config["game-limit-count"]
-        results = dbQuery("SELECT * FROM mmr_leaderboard where isBanned=false and gamesThisSeason>=%d",
+        results = dbQuery("SELECT * FROM mmr_leaderboard where isBanned=false and gamesThisSeason>=%s",
                           (gameLimit,))
         if results is None or len(results) != 0:
             return []
@@ -41,7 +41,7 @@ class LeaderboardEntry:
             entry = LeaderboardEntry(None)
             entry.id = result[0]
             entry.elo = result[1]
-            entry.discordTag = result[2]
+            entry.discordTag = result[2].decode()
             entry.isBanned = result[3]
             entry.gamesThisDecay = result[4]
             entry.gamesThisSeason = result[5]
@@ -52,17 +52,14 @@ class LeaderboardEntry:
 
     def insertUser(self):
         dbQuery(
-            "INSERT INTO mmr_leaderboard (id, elo, discordTag, isBanned, gamesThisDecay, gamesThisSeason, gamesThisSeasonWon, seasonHigh) VALUES (%d, %f, %.128s, %d, %d, %d, %d, %f)",
+            "INSERT INTO mmr_leaderboard (id, elo, discordTag, isBanned, gamesThisDecay, gamesThisSeason, gamesThisSeasonWon, seasonHigh) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             (self.id, self.elo, self.discordTag, self.isBanned, self.gamesThisDecay, self.gamesThisSeason,
              self.gamesThisSeasonWon, self.seasonHigh))
 
     def updateUser(self):
         update_query = """
-        UPDATE mmr_leaderboard SET 
-        id = %d and elo = %f and discordTag = %.128s and isBanned = %d and 
-        gamesThisDecay = %d and gamesThisSeason = %d and gamesThisSeasonWon = %d and seasonHigh = %f 
-        WHERE id = '%d'
+        UPDATE mmr_leaderboard SET elo = %s, discordTag = %s, isBanned = %s, gamesThisDecay = %s, gamesThisSeason = %s, gamesThisSeasonWon = %s, seasonHigh = %s WHERE id = %s
         """
-        dbQuery(update_query, (self.id, self.elo, self.discordTag,
+        dbQuery(update_query, (self.elo, self.discordTag,
                                self.isBanned, self.gamesThisDecay, self.gamesThisSeason,
-                               self.gamesThisSeasonWon, self.seasonHigh, self.id))
+                               self.gamesThisSeasonWon, self.seasonHigh, self.id), True, False)
