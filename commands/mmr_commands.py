@@ -5,7 +5,7 @@ from model.config import config
 from model.mmr_leaderboard import LeaderboardEntry
 
 
-async def stats(client, user):
+async def stats(user):
     player = LeaderboardEntry(user)
     if player.id == 0:
         embed = discord.embeds.Embed()
@@ -13,9 +13,9 @@ async def stats(client, user):
         embed.color = 0x20872c
         embed.description = "Error: user is not registered for ranked matches. Use the `register` command to begin"
         return embed
-    description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisDecay, config["mmr-decay-games"], player.gamesThisSeason, player.gamesThisSeasonWon, player.seasonHigh)
+    description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisDecay, config["mmr-decay-games"], player.gamesThisSeason, config["game-limit-count"], player.gamesThisSeasonWon, player.seasonHigh)
     if config["mmr-decay-every"].lower() == "never":
-        description = "MMR: {:.2f}\nGames this Season: {:d}\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisSeason, player.gamesThisSeasonWon, player.seasonHigh)
+        description = "MMR: {:.2f}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisSeason, config["game-limit-count"], player.gamesThisSeasonWon, player.seasonHigh)
     embed = discord.embeds.Embed()
     embed.title = "Your Statistics"
     embed.color = 0x20872c
@@ -23,7 +23,7 @@ async def stats(client, user):
     return embed
 
 
-async def register(client, user, tag):
+async def register(user, tag):
     player = LeaderboardEntry(user)
     if player.id == 0:
         player.id = user
@@ -48,7 +48,7 @@ async def register(client, user, tag):
         return embed
 
 
-async def score_match(args, client, user1, victory, updateStats, forceWin):
+async def score_match(args, user1, victory, updateStats, forceWin):
     if len(args) == 3 and forceWin:
         user1 = "<@" + str(args[1]) + ">"
         user2 = "<@" + str(args[2]) + ">"
@@ -102,4 +102,24 @@ async def score_match(args, client, user1, victory, updateStats, forceWin):
         embed.title = "Manual Entry Results"
         embed.color = 0x20872c
         embed.description = "Error: You must @ one opponent as your argument `!iwin|!ilost @opponent#1234`"
+        return embed
+
+
+async def gameLimit(args, user):
+    entry = LeaderboardEntry(user)
+    gameLimitCount = config["game-limit-count"]
+    if entry.id == 0:
+        embed = discord.embeds.Embed()
+        embed.title = "Games Left"
+        embed.color = 0x20872c
+        embed.description = "Error: You must are not registered for ranked games. Type `!register` to get started with ranked"
+        return embed
+    else:
+        embed = discord.embeds.Embed()
+        embed.title = "Games Left"
+        embed.color = 0x20872c
+        if gameLimitCount > entry.gamesThisSeason:
+            embed.description = "You have to play {:d} more games to appear on the leaderboard".format(config["game-limit-count"] - entry.gamesThisSeason)
+        else:
+            embed.description = "You have reached your game limit for this season and now appear on the leaderboard"
         return embed
