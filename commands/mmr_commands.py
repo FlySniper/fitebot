@@ -13,9 +13,13 @@ async def stats(user):
         embed.color = 0x20872c
         embed.description = "Error: user is not registered for ranked matches. Use the `register` command to begin"
         return embed
-    description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisDecay, config["mmr-decay-games"], player.gamesThisSeason, config["game-limit-count"], player.gamesThisSeasonWon, player.seasonHigh)
+    description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(
+        player.elo, player.gamesThisDecay, config["mmr-decay-games"], player.gamesThisSeason,
+        config["game-limit-count"], player.gamesThisSeasonWon, player.seasonHigh)
     if config["mmr-decay-every"].lower() == "never":
-        description = "MMR: {:.2f}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(player.elo, player.gamesThisSeason, config["game-limit-count"], player.gamesThisSeasonWon, player.seasonHigh)
+        description = "MMR: {:.2f}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(
+            player.elo, player.gamesThisSeason, config["game-limit-count"], player.gamesThisSeasonWon,
+            player.seasonHigh)
     embed = discord.embeds.Embed()
     embed.title = "Your Statistics"
     embed.color = 0x20872c
@@ -119,7 +123,29 @@ async def gameLimit(args, user):
         embed.title = "Games Left"
         embed.color = 0x20872c
         if gameLimitCount > entry.gamesThisSeason:
-            embed.description = "You have to play {:d} more games to appear on the leaderboard".format(config["game-limit-count"] - entry.gamesThisSeason)
+            embed.description = "You have to play {:d} more games to appear on the leaderboard".format(
+                config["game-limit-count"] - entry.gamesThisSeason)
         else:
             embed.description = "You have reached your game limit for this season and now appear on the leaderboard"
+        return embed
+
+
+async def decay(args, user):
+    entry = LeaderboardEntry(user)
+    decayLimit = config["mmr-decay-games"]
+    if entry.id == 0:
+        embed = discord.embeds.Embed()
+        embed.title = "Games Left"
+        embed.color = 0x20872c
+        embed.description = "Error: You must are not registered for ranked games. Type `!register` to get started with ranked"
+        return embed
+    else:
+        embed = discord.embeds.Embed()
+        embed.title = "Decay Games Left"
+        embed.color = 0x20872c
+        if decayLimit > entry.gamesThisSeason:
+            embed.description = "You have to play {:d} more games to avoid decay".format(
+                config["mmr-decay-games"] - entry.gamesThisDecay)
+        else:
+            embed.description = "You have to played {:d} out of {:d} games and will avoid decay".format(entry.gamesThisDecay, config["mmr-decay-games"])
         return embed
