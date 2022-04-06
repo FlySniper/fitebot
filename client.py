@@ -5,6 +5,7 @@ import mysql
 
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
+from commands.queue_commands import queue
 from controller.pagination import reactWithPaginationEmojis
 from model import db
 from model.config import refreshConfig, config
@@ -24,6 +25,7 @@ class MyClient(discord.Client):
             password=config["mysql-password"],
             autocommit=True
         )
+        db.connection.time_zone = '+00:00'
         refreshThread = Thread(target=refreshConfig)
         refreshThread.start()
 
@@ -32,10 +34,31 @@ class MyClient(discord.Client):
             return
         commandArgs = message.content[1:].lower().split(" ")
         print(commandArgs[0])
-        if message.channel.type == "dm":
+        if isinstance(message.channel, discord.channel.DMChannel):
             print("DM Command: " + message.content)
             if commandArgs[0] == "queue":
-                pass
+                queueTime = 30
+                embed = discord.embeds.Embed()
+                embed.title = "Queue Error"
+                embed.description = "Error: Please enter a number for the time in minutes you would like to queue for"
+                if len(commandArgs) == 3:
+                    try:
+                        queueTime = int(commandArgs[2])
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Queue Error"
+                    description = "Error: Please enter a valid queue name:"
+                    for key in config["matchmaking"].keys():
+                        description += "\n\t!queue " + key
+                    embed.description = description
+                    await message.channel.send(
+                        embed=embed)
+                    return
+                await queue(message.author.id, commandArgs[1], queueTime, message.channel, self)
             if commandArgs[0] == "iban":
                 pass
             if commandArgs[0] == "stopbans":
