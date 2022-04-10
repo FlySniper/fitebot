@@ -91,7 +91,7 @@ map-pool-type: "yaml" # Use yaml files for the map pool
 #map-pool-type: "google-docs" # Use google docs for the map pool
 #map-pool-google-docs-key:  # Google Docs API key
 
-discord-bot-token: "ODAwNDEyMDg3NjM2ODUyNzU3.YARv2A.aJZi1U17BR4LCY3BlexLpDUiLc8" # Discord bot token
+discord-bot-token: "" # Discord bot token
 
 mysql-hostname: # Mysql server hostname
 mysql-database: # Mysql db name
