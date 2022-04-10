@@ -1,0 +1,99 @@
+admin-channels: # Channels for Admin commands
+    - 631861137687707656
+    - 706545364735623224
+command-channels: # Channels for regular commands
+    - 785910683517845564
+    - 785910789453905980
+    - 319472408576655360
+    - 540690954429136896
+    - 785904425364750368
+    - 785904369815388170
+    - 785904158002905088
+    - 785904274830786581
+    - 283922116577853441
+    - 540691009898676234
+    - 785906782232248371
+    - 802696758647980043
+    - 573994751620022297
+    - 597878565987418115
+    - 598530345087926323
+    - 573954983188234252
+    - 584125067932336151
+    - 631861137687707656
+    - 706545364735623224
+
+command-prefix: "?"
+
+matchmaking: # List of possible queues for people to join
+  ranked:
+      channel: 706545364735623224 # The channel for this queue
+      min-queue-time: 1 # The minimum amount of time in minutes a person can spend in queue
+      max-queue-time: 120 # The maximum amount of time in minutes a person can spend in queue
+      mapgroup: "ranked" # The map pool to use for this type of queue
+      players: 2 # Number of players per match
+      teams: 2 # Number of teams per match
+      matchmaking-band: 10000 # Match players only within a certain skill level
+      uses-bans: true # Use the bans system
+      post-notification: true # Post a notification in the channel when someone queues
+      notification-text: "Someone is looking for a **ranked** game!\nDM <@934827534510616576> with `!queue ranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+  asyncranked:
+      channel: 706545364735623224
+      min-queue-time: 1
+      max-queue-time: 120
+      mapgroup: "asyncRanked"
+      players: 2
+      teams: 2
+      matchmaking-band: 10000
+      uses-bans: false
+      post-notification: true
+      notification-text: "Someone is looking for an **async** game!\nDM <@934827534510616576> with `!queue asyncranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+
+mmr-start-value: 0.0 # The mmr value a new player starts at
+mmr-minimum: 0.0 # Players cannot go below this MMR
+mmr-minimum-enabled: true # Enable minimum MMR
+mmr-scales: # Tune how much players earn depending on their ranking. Remove this for a pure ELO experience
+  - bronze:
+      start: 0 # Win more points if you're above 0 but below 50
+      winner: 0.2
+      loser: 0.0
+      emoji: ""
+  - silver:
+      start: 50 # Win the proper amount of points if you're above 50 but below 200
+      winner: 0.0
+      loser: 0.0
+      emoji: ":shield:"
+  - gold:
+      start: 200 # Win less points if you're above 200
+      winner: -0.2
+      loser: 0.0
+      emoji: ":crown:"  # Display emoji for the leaderboard
+
+mmr-decay-amount: 20 # The amount of points to decay by
+mmr-decay-every: 2week # The period of time before decay counter resets (1week, 2week, 3week, 1month, 4day, never, etc.)
+mmr-decay-start: 150 # The MMR value that decay starts at
+mmr-decay-games: 4 # The amount of games to play to avoid decay within the time period
+mmr-points-bet: 32 # The maximum amount of mmr of both players combined on the line in a 2 player game
+mmr-power: 2 # The to the power of variable in the elo formula
+mmr-elo-divide: 1000 # The amount to dive the elo by before raising it to the power
+
+game-limit-count: 10 # Number of games you must play every season before you appear on the leaderboard
+
+
+season-every: 2month # The period of time before we increment the season number (1week, 2week, 3week, 1month, 4day, etc.)
+season-normalize: true # Normalize the seasons to be within a certain mmr range
+season-normalize-min: 10 # Minimum normalize range
+season-normalize-max: 150 # Maximum normalize range
+
+leaderboard-text: "Groove of War players, ranked by Elo rating. Go to <#785910789453905980> and type !ranked to get started with ranked games"  # The text which appears in the body of the leaderboard embed
+season-high-leaderboard-text: "Groove of War players, sorted by Season High Elo. Go to <#785910789453905980> and type !ranked to get started with ranked games"  # The text which appears in the body of the leaderboard embed
+
+map-pool-type: "yaml" # Use yaml files for the map pool
+#map-pool-type: "google-docs" # Use google docs for the map pool
+#map-pool-google-docs-key:  # Google Docs API key
+
+discord-bot-token: "ODAwNDEyMDg3NjM2ODUyNzU3.YARv2A.aJZi1U17BR4LCY3BlexLpDUiLc8" # Discord bot token
+
+mysql-hostname: # Mysql server hostname
+mysql-database: # Mysql db name
+mysql-user: # Mysql username
+mysql-password: # Mysql password
