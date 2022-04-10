@@ -11,7 +11,7 @@ def queryQueue(queueName):
         return []
     entries = []
     for result in results:
-        entry = QueueEntry(None)
+        entry = QueueEntry(None, None)
         entry.id = result[0]
         entry.elo = result[1]
         entry.exitDate = result[2]
@@ -33,14 +33,14 @@ class QueueEntry:
     exitDate = datetime.datetime(1900, 1, 1, 0, 0, 0)
     queueName = ""
 
-    def __init__(self, userId):
-        if userId is None:
+    def __init__(self, userId, queueName):
+        if userId is None or queueName is None:
             pass
         else:
-            self.queryUser(userId)
+            self.queryUser(userId, queueName)
 
-    def queryUser(self, userId):
-        result = dbQuery("SELECT * FROM mmr_queue where id = %s", (userId,))
+    def queryUser(self, userId, queueName):
+        result = dbQuery("SELECT * FROM mmr_queue where id = %s and queueName = %s", (userId, queueName))
         if result is None or len(result) == 0:
             return None
         self.id = result[0][0]
@@ -51,7 +51,7 @@ class QueueEntry:
     def insertUser(self):
         dbQuery(
             "INSERT INTO mmr_queue (id, elo, exitDate, queueName) VALUES (%s, %s, %s, %s)",
-            (self.id, self.elo, self.exitDate, self.queueName, ))
+            (self.id, self.elo, self.exitDate, self.queueName,), True, False)
 
     def updateUser(self):
         update_query = """
@@ -61,4 +61,4 @@ class QueueEntry:
                                self.queueName, self.id), True, False)
 
     def deleteUser(self):
-        dbQuery("DELETE FROM mmr_queue WHERE id = %s", (self.id,), True, False)
+        dbQuery("DELETE FROM mmr_queue WHERE id = %s and queueName = %s", (self.id, self.queueName.decode()), True, False)

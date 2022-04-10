@@ -38,7 +38,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
         queueConfig = matchmakingConfig[queueName]
         matchmakingChannel = queueConfig["channel"]
         channelObj = bot.get_channel(matchmakingChannel)
-        queueEntry = QueueEntry(None)
+        queueEntry = QueueEntry(None, None)
         queueEntry.id = id
         queueEntry.elo = elo
         queueEntry.queueName = queueName
@@ -53,7 +53,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
             embed = discord.embeds.Embed()
             embed.title = "Queue"
             embed.color = 0x20872c
-            embed.description = queueConfig["notification-text"]
+            embed.description = queueConfig["notification-text"].replace("queueTime", str(int(futureTime.timestamp())))
             await channelObj.send(embed=embed)
         return
     else:
@@ -68,6 +68,18 @@ async def queue(id, queueName, timeLimit, channel, bot):
             averageElo = elo
             matchmakingBand = queueConfig["matchmaking-band"]
             for entry in currentQueue:
+
+                if entry.id == id:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Queue Error"
+                    embed.description = "You are already in the `" + queueName + "` queue"
+                    await channel.send(embed=embed)
+                    return
+
+                currentDateTime = datetime.datetime.now()
+                if currentDateTime >= entry.exitDate:
+                    entry.deleteUser()
+                    continue
                 if matchmakingBand > entry.elo - averageElo > -matchmakingBand:
                     validPlayers.append(entry.id)
                     validQueueEntries.append(entry)
@@ -75,7 +87,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
                 if len(validPlayers) >= requiredPlayers:
                     break
             if len(validPlayers) < requiredPlayers:
-                queueEntry = QueueEntry(None)
+                queueEntry = QueueEntry(None, None)
                 queueEntry.id = id
                 queueEntry.elo = elo
                 queueEntry.queueName = queueName
@@ -108,3 +120,34 @@ async def queue(id, queueName, timeLimit, channel, bot):
             await channelObj.send(finalText)
             for entry in validQueueEntries:
                 entry.deleteUser()
+
+
+async def cancel(id, queueName, bot):
+    entry = QueueEntry(userId=id, queueName=queueName)
+    if entry.id == 0:
+        embed = discord.embeds.Embed()
+        embed.title = "Cancel Error"
+        embed.description = "Error: user is not queued for a match in this queue"
+        return embed
+    if entry.exitDate <= datetime.datetime.now():
+        entry.deleteUser()
+        embed = discord.embeds.Embed()
+        embed.color = 0xFF0000
+        embed.title = "Cancel"
+        embed.description = "Time in queue expired"
+        return embed
+    entry.deleteUser()
+    embed = discord.embeds.Embed()
+    embed.title = "Cancel"
+    embed.color = 0xFF0000
+    embed.description = "You have left the " + queueName + " queue"
+    matchmakingEmbed = discord.embeds.Embed()
+    matchmakingEmbed.title = "Cancel"
+    matchmakingEmbed.color = 0xFF0000
+    matchmakingEmbed.description = "Someone has left the `" + queueName + "` queue"
+    matchmakingConfig = config["matchmaking"]
+    queueConfig = matchmakingConfig[queueName]
+    matchmakingChannel = queueConfig["channel"]
+    channelObj = bot.get_channel(matchmakingChannel)
+    await channelObj.send(embed=matchmakingEmbed)
+    return embed

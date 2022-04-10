@@ -5,7 +5,7 @@ import mysql
 
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
-from commands.queue_commands import queue
+from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis
 from model import db
 from model.config import refreshConfig, config
@@ -66,7 +66,17 @@ class MyClient(discord.Client):
             if commandArgs[0] == "accept":
                 pass
             if commandArgs[0] == "cancel":
-                pass
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Cancel Error"
+                    description = "Error: Please enter a valid queue name:"
+                    for key in config["matchmaking"].keys():
+                        description += "\n\t!queue " + key
+                    embed.description = description
+                    await message.channel.send(
+                        embed=embed)
+                    return
+                await message.channel.send(embed=await cancel(message.author.id, commandArgs[1], self))
         if message.channel.id in config["command-channels"] or "all" in config["command-channels"]:
             if commandArgs[0] == "maps":
                 pass
