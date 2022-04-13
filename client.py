@@ -3,6 +3,7 @@ from threading import Thread
 
 import mysql
 
+from commands.admin_commands import setElo
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
@@ -166,7 +167,18 @@ class MyClient(discord.Client):
             if commandArgs[0] == "unban":
                 pass
             if commandArgs[0] == "setelo":
-                pass
+                if len(commandArgs) == 3:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Set Elo"
+                    embed.description = "Error: Please enter a valid discord ID (not an @) and an elo amount"
+                    try:
+                        userId = int(commandArgs[1])
+                        elo = float(commandArgs[2])
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
+                    await message.channel.send(embed=await setElo(message.author.id, userId, elo))
             if commandArgs[0] == "forcewin":
                 await message.channel.send(
                     embed=await score_match(commandArgs, message.author.id, 1, True, True))
