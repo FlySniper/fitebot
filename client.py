@@ -5,6 +5,7 @@ import mysql
 
 from commands.admin_commands import setElo
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
+from commands.map_commands import getMaps
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis
@@ -80,7 +81,14 @@ class MyClient(discord.Client):
                 await message.channel.send(embed=await cancel(message.author.id, commandArgs[1], self))
         if message.channel.id in config["command-channels"] or "all" in config["command-channels"]:
             if commandArgs[0] == "maps":
-                pass
+                isRandom = False
+                page = 1
+                if len(commandArgs) == 3:
+                    try:
+                        page = int(commandArgs[2])
+                    except ValueError:
+                        isRandom = commandArgs[2].lower() == "random"
+                await message.channel.send(embed=await getMaps(commandArgs[1], isRandom, page, 25))
             if commandArgs[0] == "season":
                 pass
             if commandArgs[0] == "stats":
