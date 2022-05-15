@@ -49,7 +49,7 @@ def countLeaderboard(gameLimit):
         "SELECT COUNT(*) FROM mmr_leaderboard where isBanned=false and gamesThisSeason>=%s ORDER BY elo DESC",
         (gameLimit,))
     if results is None or len(results) == 0:
-        return []
+        return 0
     return results[0][0]
 
 

@@ -38,12 +38,27 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
         embed.color = 0x20872c
         return embed
 
-    description = "***Map name (version) — Code***"
+    description = "***Map name (version) — Author***"
+    fieldValue = ""
+    count = startIndex + 1
     for entry in mapEntries:
-        description += "\n{name} - {author}".format(name=entry.name, author=entry.author)
+        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        count += 1
 
     embed = discord.embeds.Embed()
-    embed.title = "Maps Found"
+    embed.title = "Maps Found ({tag})".format(tag=tag)
     embed.description = description
+    embed.add_field(name="{:d}-{:d}".format(startIndex + 1, startIndex + mapsPerPage),
+                    value=fieldValue)
     embed.color = 0x20872c
     return embed
+
+
+def getMapsField(tag, startIndex, mapsPerPage):
+    mapEntries = queryMapsByTag(tag, startIndex, mapsPerPage)
+    fieldValue = ""
+    count = startIndex + 1
+    for entry in mapEntries:
+        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        count += 1
+    return fieldValue

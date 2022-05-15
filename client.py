@@ -3,15 +3,16 @@ from threading import Thread
 
 import mysql
 
-from commands.admin_commands import setElo
+from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
-from commands.map_commands import getMaps
+from commands.map_commands import getMaps, getMapsField
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis
 from model import db
 from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
+from model.mmr_maps import countMaps
 
 prefix = config["command-prefix"]
 
@@ -83,12 +84,17 @@ class MyClient(discord.Client):
             if commandArgs[0] == "maps":
                 isRandom = False
                 page = 1
-                if len(commandArgs) == 3:
+                group = "all"
+                if len(commandArgs) > 1:
+                    group = commandArgs[1]
+                if len(commandArgs) >= 3:
                     try:
                         page = int(commandArgs[2])
                     except ValueError:
                         isRandom = commandArgs[2].lower() == "random"
-                await message.channel.send(embed=await getMaps(commandArgs[1], isRandom, page, 25))
+                mapsEmbed = await message.channel.send(embed=await getMaps(group, isRandom, page, 25))
+                if mapsEmbed.embeds[0].title.startswith("Maps Found"):
+                    await reactWithPaginationEmojis(mapsEmbed)
             if commandArgs[0] == "season":
                 pass
             if commandArgs[0] == "stats":
@@ -171,9 +177,29 @@ class MyClient(discord.Client):
                 pass
         if message.channel.id in config["admin-channels"]:
             if commandArgs[0] == "ban":
-                pass
+                if len(commandArgs) == 2:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Ban Error"
+                    embed.description = "Error: Please enter a valid discord ID (not an @)"
+                    try:
+                        userId = int(commandArgs[1])
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
+                    await message.channel.send(embed=await setBan(message.author.id, userId, True))
             if commandArgs[0] == "unban":
-                pass
+                if len(commandArgs) == 2:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Ban Error"
+                    embed.description = "Error: Please enter a valid discord ID (not an @)"
+                    try:
+                        userId = int(commandArgs[1])
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
+                    await message.channel.send(embed=await setBan(message.author.id, userId, False))
             if commandArgs[0] == "setelo":
                 if len(commandArgs) == 3:
                     embed = discord.embeds.Embed()
@@ -192,11 +218,11 @@ class MyClient(discord.Client):
                     embed=await score_match(commandArgs, message.author.id, 1, True, True))
 
     async def on_reaction_add(self, reaction, user):
+        if user.bot or self.user.id != reaction.message.author.id or len(reaction.message.embeds) == 0:
+            return
         embed = reaction.message.embeds[0]
         emoji = reaction.emoji
         print("Emoji Reacted: " + str(emoji))
-        if user.bot or self.user.id != reaction.message.author.id:
-            return
         if embed.title == "Leaderboard":
             fieldCount = len(embed.fields)
             if fieldCount > 0:
@@ -235,6 +261,29 @@ class MyClient(discord.Client):
                 numEntries = countLeaderboard(0)
                 start = max(0, min(start, numEntries))
                 fieldValue = generateSeasonHighsField(start, count)
+                if fieldValue is None or fieldValue == "":
+                    return
+                embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),
+                                   value=fieldValue)
+                await reaction.message.edit(embed=embed)
+
+        if embed.title.startswith("Maps Found"):
+            fieldCount = len(embed.fields)
+            if fieldCount > 0:
+                field = embed.fields[0]
+                splt = field.name.split("-")
+                start = int(splt[0]) - 1
+                count = int(splt[1]) - start
+                if emoji == "⬅":
+                    start -= count
+                elif emoji == "➡":
+                    start += count
+                else:
+                    return
+                tag = embed.title[12:-1]
+                numEntries = countMaps(tag)
+                start = max(0, min(start, numEntries))
+                fieldValue = getMapsField(tag, start, count)
                 if fieldValue is None or fieldValue == "":
                     return
                 embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),

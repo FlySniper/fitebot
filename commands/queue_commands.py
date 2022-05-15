@@ -3,6 +3,7 @@ import random
 
 import discord
 
+from commands.map_commands import getMaps
 from model.config import config
 from model.mmr_leaderboard import LeaderboardEntry
 from model.mmr_queue import QueueEntry, queryQueue
@@ -111,7 +112,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
             if queueConfig["uses-bans"]:
                 finalText += "\nBans Underway"
                 # TODO Implement Bans
-            # TODO Implement Random Maps
+            mapEmbed = await getMaps(queueConfig["maptags"], True, 1, 1)
             embed = discord.embeds.Embed()
             embed.title = "Queue"
             embed.color = 0x20872c
@@ -120,6 +121,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
             await channelObj.send(finalText)
             for entry in validQueueEntries:
                 entry.deleteUser()
+            await channelObj.send(embed=mapEmbed)
 
 
 async def cancel(id, queueName, bot):
