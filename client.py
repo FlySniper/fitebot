@@ -35,7 +35,8 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         if not message.content.startswith(prefix):
             return
-        commandArgs = message.content[1:].lower().split(" ")
+        commandArgs = message.content[1:].split(" ")
+        commandArgs[0] = commandArgs[0].lower()
         print(commandArgs[0])
         if isinstance(message.channel, discord.channel.DMChannel):
             print("DM Command: " + message.content)
@@ -230,13 +231,17 @@ class MyClient(discord.Client):
                 splt = field.name.split("-")
                 start = int(splt[0]) - 1
                 count = int(splt[1]) - start
+                numEntries = countLeaderboard(0)
                 if emoji == "⬅":
                     start -= count
                 elif emoji == "➡":
                     start += count
+                elif emoji == "⏩":
+                    start = numEntries - count
+                elif emoji == "⏪":
+                    start = 0
                 else:
                     return
-                numEntries = countLeaderboard(0)
                 start = max(0, min(start, numEntries))
                 fieldValue = generateLeaderboardField(start, count)
                 if fieldValue is None or fieldValue == "":
@@ -252,13 +257,17 @@ class MyClient(discord.Client):
                 splt = field.name.split("-")
                 start = int(splt[0]) - 1
                 count = int(splt[1]) - start
+                numEntries = countLeaderboard(0)
                 if emoji == "⬅":
                     start -= count
                 elif emoji == "➡":
                     start += count
+                elif emoji == "⏩":
+                    start = numEntries - count
+                elif emoji == "⏪":
+                    start = 0
                 else:
                     return
-                numEntries = countLeaderboard(0)
                 start = max(0, min(start, numEntries))
                 fieldValue = generateSeasonHighsField(start, count)
                 if fieldValue is None or fieldValue == "":
@@ -272,16 +281,20 @@ class MyClient(discord.Client):
             if fieldCount > 0:
                 field = embed.fields[0]
                 splt = field.name.split("-")
+                tag = embed.title[12:-1]
+                numEntries = countMaps(tag)
                 start = int(splt[0]) - 1
                 count = int(splt[1]) - start
                 if emoji == "⬅":
                     start -= count
                 elif emoji == "➡":
                     start += count
+                elif emoji == "⏩":
+                    start = numEntries - count
+                elif emoji == "⏪":
+                    start = 0
                 else:
                     return
-                tag = embed.title[12:-1]
-                numEntries = countMaps(tag)
                 start = max(0, min(start, numEntries))
                 fieldValue = getMapsField(tag, start, count)
                 if fieldValue is None or fieldValue == "":

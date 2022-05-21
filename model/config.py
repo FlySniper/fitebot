@@ -1,6 +1,8 @@
 from time import sleep
 import yaml
 
+import model
+
 
 def openConfig():
     with open("config.yaml", "r") as stream:
@@ -17,4 +19,4 @@ config = openConfig()
 def refreshConfig():
     while True:
         sleep(60 * 60 * 1)  # One hour
-        config.config = openConfig()
+        model.config.config = openConfig()

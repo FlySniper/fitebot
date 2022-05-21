@@ -44,7 +44,7 @@ def countMaps(tag):
     if tag == "all":
         results = dbQuery("SELECT COUNT(*) FROM mmr_maps ORDER BY name", ())
     else:
-        results = dbQuery("SELECT COUNT(name, author, link, description, mapTag) FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name)", (tag, "%" + tag + "%"))
+        results = dbQuery("SELECT COUNT(*) FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name)", (tag, "%" + tag + "%"))
     if results is None or len(results) == 0:
         return 0
     return results[0][0]
@@ -57,17 +57,22 @@ class MapEntry:
     description = ""
     tags = ""
 
-    def insertMap(self):
+    def insertMap(self, tags):
         dbQuery(
-            "INSERT INTO mmr_maps (name, author, link) VALUES (%s, %s, %s)",
-            (self.name, self.author, self.link,), True, False)
+            "INSERT INTO mmr_maps (name, author, link, description) VALUES (%s, %s, %s, %s)",
+            (self.name, self.author, self.link, self.description), True, False)
+        for tag in tags.split(","):
+            dbQuery(
+                "INSERT INTO mmr_maps_tags (mapName, mapTag) VALUES (%s, %s)",
+                (self.name, tag), True, False)
 
     def updateMap(self):
         update_query = """
-        UPDATE mmr_maps SET author = %s, link = %s, WHERE name = %s
+        UPDATE mmr_maps SET author = %s, link = %s, description = %s, WHERE name = %s
         """
-        dbQuery(update_query, (self.author, self.link,
+        dbQuery(update_query, (self.author, self.link, self.description,
                                self.name), True, False)
 
     def deleteMap(self):
         dbQuery("DELETE FROM mmr_maps WHERE name = %s", (self.name,), True, False)
+        dbQuery("DELETE FROM mmr_maps_tags WHERE mapName = %s", (self.name,), True, False)
