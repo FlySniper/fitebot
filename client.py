@@ -5,7 +5,8 @@ import mysql
 
 from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
-from commands.map_commands import getMaps, getMapsField
+from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
+    getMapAddSession, removeMapAddSession
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis
@@ -34,6 +35,28 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         if not message.content.startswith(prefix):
+            if isInMapAddSession(message.author.id):
+                session = getMapAddSession(message.author.id)
+                if session.isExpired():
+                    removeMapAddSession(message.author.id)
+                    await message.channel.send("Map add session expired")
+                    return
+                if session.getCurrentState() == "name":
+                    session.addName(message.content)
+                    await message.channel.send("Please enter the map's author:")
+                elif session.getCurrentState() == "author":
+                    session.addAuthor(message.content)
+                    await message.channel.send("Please send a link (not an attachment) for the map:")
+                elif session.getCurrentState() == "link":
+                    session.addLink(message.content)
+                    await message.channel.send("Please enter a description for the map:")
+                elif session.getCurrentState() == "description":
+                    session.addDescription(message.content)
+                    await message.channel.send("Please enter the tags for the map, separated by a comma without spaces:")
+                elif session.getCurrentState() == "tags":
+                    session.addMapToDatabase(message.content)
+                    removeMapAddSession(message.author.id)
+                    await message.channel.send("Map Added to the database! Please verify that it was successfully added, maps with a duplicate name will not be added")
             return
         commandArgs = message.content[1:].split(" ")
         commandArgs[0] = commandArgs[0].lower()
@@ -86,13 +109,13 @@ class MyClient(discord.Client):
                 isRandom = False
                 page = 1
                 group = "all"
+                if len(commandArgs) > 2:
+                    isRandom = commandArgs[-1].lower() == "random"
                 if len(commandArgs) > 1:
-                    group = commandArgs[1]
-                if len(commandArgs) >= 3:
-                    try:
-                        page = int(commandArgs[2])
-                    except ValueError:
-                        isRandom = commandArgs[2].lower() == "random"
+                    if isRandom:
+                        group = " ".join(commandArgs[1:len(commandArgs) - 1])
+                    else:
+                        group = " ".join(commandArgs[1:])
                 mapsEmbed = await message.channel.send(embed=await getMaps(group, isRandom, page, 25))
                 if mapsEmbed.embeds[0].title.startswith("Maps Found"):
                     await reactWithPaginationEmojis(mapsEmbed)
@@ -177,6 +200,17 @@ class MyClient(discord.Client):
             if commandArgs[0] == "startbans":
                 pass
         if message.channel.id in config["admin-channels"]:
+            if commandArgs[0] == "addmap":
+                await message.channel.send(embed=await startMapAddSession(message.author))
+            if commandArgs[0] == "deletemap":
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Delete Map Error"
+                    embed.description = "Error: Please enter the full valid map name"
+                    await message.channel.send(embed=embed)
+                    return
+                name = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await delMap(name))
             if commandArgs[0] == "ban":
                 if len(commandArgs) == 2:
                     embed = discord.embeds.Embed()

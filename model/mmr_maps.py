@@ -26,8 +26,8 @@ def queryMapsByRandomTag(tag):
     if tag.lower() == "all":
         result = dbQuery("SELECT * FROM mmr_maps ORDER BY RAND() LIMIT 1", ())
     else:
-        result = dbQuery("SELECT name, author, link, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s ORDER BY RAND() LIMIT 1",
-                         (tag,))
+        result = dbQuery("SELECT name, author, link, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) ORDER BY RAND() LIMIT 1",
+                         (tag, "%" + tag + "%"))
     if result is None or len(result) == 0:
         return None
     entry = MapEntry()
