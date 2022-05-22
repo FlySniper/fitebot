@@ -6,14 +6,14 @@ import mysql
 from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
-    getMapAddSession, removeMapAddSession
+    getMapAddSession, removeMapAddSession, getMapTags, getTagsField
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis
 from model import db
 from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
-from model.mmr_maps import countMaps
+from model.mmr_maps import countMaps, countTags
 
 prefix = config["command-prefix"]
 
@@ -63,7 +63,7 @@ class MyClient(discord.Client):
         print(commandArgs[0])
         if isinstance(message.channel, discord.channel.DMChannel):
             print("DM Command: " + message.content)
-            if commandArgs[0] == "queue" or commandArgs[0] == "match":
+            if commandArgs[0] == "queue" or commandArgs[0] == "match" or commandArgs[0] == "***hunt***":
                 queueTime = 30
                 embed = discord.embeds.Embed()
                 embed.title = "Queue Error"
@@ -92,7 +92,7 @@ class MyClient(discord.Client):
                 pass
             if commandArgs[0] == "accept":
                 pass
-            if commandArgs[0] == "cancel":
+            if commandArgs[0] == "cancel" or commandArgs[0] == "***sedgebusy***":
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()
                     embed.title = "Cancel Error"
@@ -105,13 +105,28 @@ class MyClient(discord.Client):
                     return
                 await message.channel.send(embed=await cancel(message.author.id, commandArgs[1], self))
         if message.channel.id in config["command-channels"] or "all" in config["command-channels"]:
-            if commandArgs[0] == "help" or commandArgs[0] == "ranked":
+            if commandArgs[0] == "help" or commandArgs[0] == "ranked" or commandArgs[0] == "***floranlibrary***":
                 embed = discord.embeds.Embed()
                 embed.title = "Help"
                 embed.description = config["help-text"]
                 embed.color = 0x20872c
                 await message.channel.send(embed=embed)
-            if commandArgs[0] == "maps":
+            if commandArgs[0] == "tags" or commandArgs[0] == "maptags" or commandArgs[0] == "groups" or commandArgs[0] == "mapgroups" or commandArgs[0] == "***floranclassifications***":
+                start = 0
+                count = 25
+                embed = discord.embeds.Embed()
+                embed.title = "Tags Error"
+                embed.description = "Error: Please enter a valid number for the tag page"
+                if len(commandArgs) == 2:
+                    try:
+                        start = int(commandArgs[1])
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
+                tagsEmbed = await message.channel.send(embed=await getMapTags(start, count))
+                await reactWithPaginationEmojis(tagsEmbed)
+            if commandArgs[0] == "maps" or commandArgs[0] == "***gloomwoods***":
                 isRandom = False
                 page = 1
                 group = "all"
@@ -127,23 +142,23 @@ class MyClient(discord.Client):
                     await reactWithPaginationEmojis(mapsEmbed)
             if commandArgs[0] == "season":
                 pass
-            if commandArgs[0] == "stats":
+            if commandArgs[0] == "stats" or commandArgs[0] == "***hunterpoints***":
                 await message.channel.send(embed=await stats(message.author.id))
-            if commandArgs[0] == "decay":
+            if commandArgs[0] == "decay" or commandArgs[0] == "***rot***":
                 await message.channel.send(embed=await decay(commandArgs, message.author.id))
-            if commandArgs[0] == "gamelimit":
+            if commandArgs[0] == "gamelimit" or commandArgs[0] == "***sedgegames***":
                 await message.channel.send(embed=await gameLimit(commandArgs, message.author.id))
-            if commandArgs[0] == "register":
+            if commandArgs[0] == "register" or commandArgs[0] == "***sedgehungers***":
                 await message.channel.send(embed=await register(message.author.id,
                                                                 message.author.name + "#" + str(
                                                                     message.author.discriminator)))
-            if commandArgs[0] == "iwin" or commandArgs[0] == "iwon":
+            if commandArgs[0] == "iwin" or commandArgs[0] == "iwon" or commandArgs[0] == "***sedgewins***":
                 await message.channel.send(
                     embed=await score_match(commandArgs, "<@" + str(message.author.id) + ">", 1, True, False))
-            if commandArgs[0] == "ilose" or commandArgs[0] == "ilost" or commandArgs[0] == "iloss":
+            if commandArgs[0] == "ilose" or commandArgs[0] == "ilost" or commandArgs[0] == "iloss" or commandArgs[0] == "***sedgeinjured***":
                 await message.channel.send(
                     embed=await score_match(commandArgs, "<@" + str(message.author.id) + ">", 2, True, False))
-            if commandArgs[0] == "leaderboard":
+            if commandArgs[0] == "leaderboard" or commandArgs[0] == "***sedgestanding***":
                 start = 1
                 count = 25
                 embed = discord.embeds.Embed()
@@ -171,7 +186,7 @@ class MyClient(discord.Client):
                 leaderboardMessage = await message.channel.send(
                     embed=await displayLeaderboard(start - 1, count))
                 await reactWithPaginationEmojis(leaderboardMessage)
-            if commandArgs[0] == "seasonhighs":
+            if commandArgs[0] == "seasonhighs" or commandArgs[0] == "***sedgeheights***":
                 start = 1
                 count = 25
                 embed = discord.embeds.Embed()
@@ -335,6 +350,31 @@ class MyClient(discord.Client):
                     return
                 start = max(0, min(start, numEntries))
                 fieldValue = getMapsField(tag, start, count)
+                if fieldValue is None or fieldValue == "":
+                    return
+                embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),
+                                   value=fieldValue)
+                await reaction.message.edit(embed=embed)
+        if embed.title.startswith("Tags Found"):
+            fieldCount = len(embed.fields)
+            if fieldCount > 0:
+                field = embed.fields[0]
+                splt = field.name.split("-")
+                numEntries = countTags()
+                start = int(splt[0]) - 1
+                count = int(splt[1]) - start
+                if emoji == "⬅":
+                    start -= count
+                elif emoji == "➡":
+                    start += count
+                elif emoji == "⏩":
+                    start = numEntries - count
+                elif emoji == "⏪":
+                    start = 0
+                else:
+                    return
+                start = max(0, min(start, numEntries))
+                fieldValue = getTagsField(start, count)
                 if fieldValue is None or fieldValue == "":
                     return
                 embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),

@@ -4,7 +4,7 @@ import random
 import discord
 
 from model.config import config
-from model.mmr_maps import MapEntry, queryMapsByTag, queryMapsByRandomTag
+from model.mmr_maps import MapEntry, queryMapsByTag, queryMapsByRandomTag, queryTags
 
 
 class MapAddSession:
@@ -94,12 +94,37 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
     return embed
 
 
+async def getMapTags(start, end):
+    tags = queryTags(start, end)
+    startIndex = start * end
+    description = "***Map tags***"
+    fieldValue = getTagsField(start, end)
+
+    embed = discord.embeds.Embed()
+    embed.title = "Tags Found"
+    embed.description = description
+    embed.add_field(name="{:d}-{:d}".format(startIndex + 1, startIndex + end),
+                    value=fieldValue)
+    embed.color = 0x20872c
+    return embed
+
+
 def getMapsField(tag, startIndex, mapsPerPage):
     mapEntries = queryMapsByTag(tag, startIndex, mapsPerPage)
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
         fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        count += 1
+    return fieldValue
+
+
+def getTagsField(startIndex, mapsPerPage):
+    tags = queryTags(startIndex, mapsPerPage)
+    fieldValue = ""
+    count = startIndex + 1
+    for tag in tags:
+        fieldValue += "`{count}` {tag}\n".format(count=count, tag=tag)
         count += 1
     return fieldValue
 
