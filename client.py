@@ -63,7 +63,7 @@ class MyClient(discord.Client):
         print(commandArgs[0])
         if isinstance(message.channel, discord.channel.DMChannel):
             print("DM Command: " + message.content)
-            if commandArgs[0] == "queue":
+            if commandArgs[0] == "queue" or commandArgs[0] == "match":
                 queueTime = 30
                 embed = discord.embeds.Embed()
                 embed.title = "Queue Error"
@@ -143,8 +143,6 @@ class MyClient(discord.Client):
             if commandArgs[0] == "ilose" or commandArgs[0] == "ilost" or commandArgs[0] == "iloss":
                 await message.channel.send(
                     embed=await score_match(commandArgs, "<@" + str(message.author.id) + ">", 2, True, False))
-            if commandArgs[0] == "help" or commandArgs[0] == "ranked":
-                pass
             if commandArgs[0] == "leaderboard":
                 start = 1
                 count = 25

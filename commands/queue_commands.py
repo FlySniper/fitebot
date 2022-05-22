@@ -11,15 +11,6 @@ from model.mmr_queue import QueueEntry, queryQueue
 
 async def queue(id, queueName, timeLimit, channel, bot):
     leaderboardEntry = LeaderboardEntry(id)
-    if leaderboardEntry is None:
-        embed = discord.embeds.Embed()
-        embed.title = "Queue Error"
-        embed.color = 0x20872c
-        embed.description = "Error: You are not registered to play ranked matches, please use `!register` in the discord"
-        await channel.send(embed=embed)
-        return
-    elo = leaderboardEntry.elo
-
     matchmakingConfig = config["matchmaking"]
     if queueName not in matchmakingConfig.keys():
         embed = discord.embeds.Embed()
@@ -30,18 +21,34 @@ async def queue(id, queueName, timeLimit, channel, bot):
         embed.description = description
         await channel.send(embed=embed)
         return
+    queueConfig = matchmakingConfig[queueName]
+    matchmakingEnabled = queueConfig["uses-matchmaking"]
+    if leaderboardEntry is None and matchmakingEnabled:
+        embed = discord.embeds.Embed()
+        embed.title = "Queue Error"
+        embed.color = 0x20872c
+        embed.description = "Error: You are not registered to play ranked matches, please use `!register` in the discord"
+        await channel.send(embed=embed)
+        return
+    if matchmakingEnabled:
+        elo = leaderboardEntry.elo
+    else:
+        elo = 1.0
+
 
     futureTime = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
     futureTime += datetime.timedelta(minutes=timeLimit)
 
     currentQueue = queryQueue(queueName)
     if len(currentQueue) == 0:
-        queueConfig = matchmakingConfig[queueName]
         matchmakingChannel = queueConfig["channel"]
         channelObj = bot.get_channel(matchmakingChannel)
         queueEntry = QueueEntry(None, None)
         queueEntry.id = id
-        queueEntry.elo = elo
+        if matchmakingEnabled:
+            queueEntry.elo = elo
+        else:
+            queueEntry.elo = 0
         queueEntry.queueName = queueName
         queueEntry.exitDate = futureTime
         queueEntry.insertUser()
