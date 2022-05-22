@@ -105,6 +105,12 @@ class MyClient(discord.Client):
                     return
                 await message.channel.send(embed=await cancel(message.author.id, commandArgs[1], self))
         if message.channel.id in config["command-channels"] or "all" in config["command-channels"]:
+            if commandArgs[0] == "help" or commandArgs[0] == "ranked":
+                embed = discord.embeds.Embed()
+                embed.title = "Help"
+                embed.description = config["help-text"]
+                embed.color = 0x20872c
+                await message.channel.send(embed=embed)
             if commandArgs[0] == "maps":
                 isRandom = False
                 page = 1

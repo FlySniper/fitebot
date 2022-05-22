@@ -3,3 +3,4 @@ config.yaml
 fitebot-python.iml
 venv
 client_secret.json
+__pycache__

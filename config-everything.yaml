@@ -25,48 +25,48 @@ command-channels: # Channels for regular commands
 command-prefix: "?"
 
 matchmaking: # List of possible queues for people to join
-  ranked:
-      channel: 706545364735623224 # The channel for this queue
-      min-queue-time: 1 # The minimum amount of time in minutes a person can spend in queue
-      max-queue-time: 120 # The maximum amount of time in minutes a person can spend in queue
-      mapgroup: "ranked" # The map pool to use for this type of queue
-      players: 2 # Number of players per match
-      teams: 2 # Number of teams per match
-      matchmaking-band: 10000 # Match players only within a certain skill level
-      uses-bans: true # Use the bans system
-      post-notification: true # Post a notification in the channel when someone queues
-      notification-text: "Someone is looking for a **ranked** game!\nDM <@934827534510616576> with `!queue ranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
-  asyncranked:
-      channel: 706545364735623224
-      min-queue-time: 1
-      max-queue-time: 120
-      mapgroup: "asyncRanked"
-      players: 2
-      teams: 2
-      matchmaking-band: 10000
-      uses-bans: false
-      post-notification: true
-      notification-text: "Someone is looking for an **async** game!\nDM <@934827534510616576> with `!queue asyncranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+    ranked:  # Must be lowercase
+        channel: 706545364735623224 # The channel for this queue
+        min-queue-time: 1 # The minimum amount of time in minutes a person can spend in queue
+        max-queue-time: 120 # The maximum amount of time in minutes a person can spend in queue
+        maptags: "ranked" # The map pool to use for this type of queue
+        players: 2 # Number of players per match
+        teams: 2 # Number of teams per match
+        matchmaking-band: 10000 # Match players only within a certain skill level
+        uses-bans: false # Use the bans system
+        post-notification: true # Post a notification in the channel when someone queues
+        notification-text: "Someone is looking for a **ranked** game!\nDM <@934827534510616576> with `!queue ranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+    asyncranked:
+        channel: 706545364735623224
+        min-queue-time: 1
+        max-queue-time: 120
+        maptags: "asyncRanked"
+        players: 2
+        teams: 2
+        matchmaking-band: 10000
+        uses-bans: false
+        post-notification: true
+        notification-text: "Someone is looking for an **async** game!\nDM <@934827534510616576> with `!queue asyncranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
 
 mmr-start-value: 0.0 # The mmr value a new player starts at
 mmr-minimum: 0.0 # Players cannot go below this MMR
 mmr-minimum-enabled: true # Enable minimum MMR
 mmr-scales: # Tune how much players earn depending on their ranking. Remove this for a pure ELO experience
-  - bronze:
-      start: 0 # Win more points if you're above 0 but below 50
-      winner: 0.2
-      loser: 0.0
-      emoji: ""
-  - silver:
-      start: 50 # Win the proper amount of points if you're above 50 but below 200
-      winner: 0.0
-      loser: 0.0
-      emoji: ":shield:"
-  - gold:
-      start: 200 # Win less points if you're above 200
-      winner: -0.2
-      loser: 0.0
-      emoji: ":crown:"  # Display emoji for the leaderboard
+    - bronze:
+          start: 0 # Win more points if you're above 0 but below 50
+          winner: 0.2
+          loser: 0.0
+          emoji: ""
+    - silver:
+          start: 50 # Win the proper amount of points if you're above 50 but below 200
+          winner: 0.0
+          loser: 0.0
+          emoji: ":shield:"
+    - gold:
+          start: 200 # Win less points if you're above 200
+          winner: -0.2
+          loser: 0.0
+          emoji: ":crown:"  # Display emoji for the leaderboard
 
 mmr-decay-amount: 20 # The amount of points to decay by
 mmr-decay-every: 2week # The period of time before decay counter resets (1week, 2week, 3week, 1month, 4day, never, etc.)
@@ -87,13 +87,37 @@ season-normalize-max: 150 # Maximum normalize range
 leaderboard-text: "Groove of War players, ranked by Elo rating. Go to <#785910789453905980> and type !ranked to get started with ranked games"  # The text which appears in the body of the leaderboard embed
 season-high-leaderboard-text: "Groove of War players, sorted by Season High Elo. Go to <#785910789453905980> and type !ranked to get started with ranked games"  # The text which appears in the body of the leaderboard embed
 
-map-pool-type: "yaml" # Use yaml files for the map pool
-#map-pool-type: "google-docs" # Use google docs for the map pool
-#map-pool-google-docs-key:  # Google Docs API key
+help-text: "Our <#806343595690033172> uses a custom MMR ranking system, adjusting your rank relative to your opponent's after a match\n
 
-discord-bot-token: "" # Discord bot token
+            !register: Register for ranked matches\n
+
+            !stats: View your stats including your mmr\n
+
+            !gamelimit: View how many games you must play until you appear on the leaderboard\n
+
+            !leaderboard: Displays the current leaderboard as a chat message\n
+
+            !seasonhighs: Displays everyone's season high mmr as a leaderboard chat message\n
+
+            !ranked: Shows this text.\n
+
+            !maps <query>: Displays the map pool for the specified query. ranked and asyncranked are valid tags for maps\n
+
+            !maps <query> random: Displays a random map from the specified query, which could be a map name, or map tag\n
+
+            !queue <queue> 15: See !match\n
+
+            !match <queue> 15: DM this to the bot to enter a matchmaker queue which expires after 15 minutes\n
+
+            !cancel <queue>: DM this to the bot to leave the matchmaking queue\n
+
+            !iwin: Type !iwin @opponent#1234 if you won against your opponent. This command is for manually entering in match data\n
+
+            !ilose: Type !ilose @opponent#1234 if you lost against your opponent. This command is for manually entering in match data"
+
+discord-bot-token:  # Discord bot token
 
 mysql-hostname: # Mysql server hostname
-mysql-database: # Mysql db name
-mysql-user: # Mysql username
-mysql-password: # Mysql password
+mysql-database:  # Mysql db name
+mysql-user:  # Mysql username
+mysql-password:  # Mysql password
