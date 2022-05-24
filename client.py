@@ -22,19 +22,13 @@ class MyClient(discord.Client):
 
     async def on_ready(self):
         print("Bot Starting")
-        db.connection = mysql.connector.connect(
-            host=config["mysql-hostname"],
-            database=config["mysql-database"],
-            user=config["mysql-user"],
-            password=config["mysql-password"],
-            autocommit=True
-        )
-        db.connection.time_zone = '+00:00'
+        connectDb()
         refreshThread = Thread(target=refreshConfig)
         refreshThread.start()
 
     async def on_message(self, message):
         if not message.content.startswith(prefix):
+            connectDb()
             if isInMapAddSession(message.author.id):
                 session = getMapAddSession(message.author.id)
                 if session.isExpired():
@@ -52,17 +46,20 @@ class MyClient(discord.Client):
                     await message.channel.send("Please enter a description for the map:")
                 elif session.getCurrentState() == "description":
                     session.addDescription(message.content)
-                    await message.channel.send("Please enter the tags for the map, separated by a comma without spaces:")
+                    await message.channel.send(
+                        "Please enter the tags for the map, separated by a comma without spaces:")
                 elif session.getCurrentState() == "tags":
                     session.addMapToDatabase(message.content)
                     removeMapAddSession(message.author.id)
-                    await message.channel.send("Map Added to the database! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                    await message.channel.send(
+                        "Map Added to the database! Please verify that it was successfully added, maps with a duplicate name will not be added")
             return
         commandArgs = message.content[1:].split(" ")
         commandArgs[0] = commandArgs[0].lower()
         print(commandArgs[0])
         if isinstance(message.channel, discord.channel.DMChannel):
             print("DM Command: " + message.content)
+            connectDb()
             if commandArgs[0] == "queue" or commandArgs[0] == "match" or commandArgs[0] == "***hunt***":
                 queueTime = 30
                 embed = discord.embeds.Embed()
@@ -105,6 +102,7 @@ class MyClient(discord.Client):
                     return
                 await message.channel.send(embed=await cancel(message.author.id, commandArgs[1], self))
         if message.channel.id in config["command-channels"] or "all" in config["command-channels"]:
+            connectDb()
             if commandArgs[0] == "help" or commandArgs[0] == "ranked" or commandArgs[0] == "***floranlibrary***":
                 embed = discord.embeds.Embed()
                 embed.title = "Help"
@@ -219,6 +217,7 @@ class MyClient(discord.Client):
             if commandArgs[0] == "startbans":
                 pass
         if message.channel.id in config["admin-channels"]:
+            connectDb()
             if commandArgs[0] == "addmap":
                 await message.channel.send(embed=await startMapAddSession(message.author))
             if commandArgs[0] == "deletemap":
@@ -277,6 +276,7 @@ class MyClient(discord.Client):
         embed = reaction.message.embeds[0]
         emoji = reaction.emoji
         print("Emoji Reacted: " + str(emoji))
+        connectDb()
         if embed.title == "Leaderboard":
             fieldCount = len(embed.fields)
             if fieldCount > 0:
@@ -380,6 +380,20 @@ class MyClient(discord.Client):
                 embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),
                                    value=fieldValue)
                 await reaction.message.edit(embed=embed)
+
+
+def connectDb():
+    if db.connection is None:
+        db.connection = mysql.connector.connect(
+            host=config["mysql-hostname"],
+            database=config["mysql-database"],
+            user=config["mysql-user"],
+            password=config["mysql-password"],
+            autocommit=True
+        )
+        db.connection.time_zone = '+00:00'
+    elif not db.connection.is_connected():
+        db.connection.reconnect(10, 1)
 
 
 client = MyClient()
