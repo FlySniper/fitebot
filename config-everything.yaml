@@ -1,72 +1,114 @@
 admin-channels: # Channels for Admin commands
-    - 631861137687707656
-    - 706545364735623224
+  - 631861137687707656
+  - 706545364735623224
 command-channels: # Channels for regular commands
-    - 785910683517845564
-    - 785910789453905980
-    - 319472408576655360
-    - 540690954429136896
-    - 785904425364750368
-    - 785904369815388170
-    - 785904158002905088
-    - 785904274830786581
-    - 283922116577853441
-    - 540691009898676234
-    - 785906782232248371
-    - 802696758647980043
-    - 573994751620022297
-    - 597878565987418115
-    - 598530345087926323
-    - 573954983188234252
-    - 584125067932336151
-    - 631861137687707656
-    - 706545364735623224
+  - 785910683517845564
+  - 785910789453905980
+  - 319472408576655360
+  - 540690954429136896
+  - 785904425364750368
+  - 785904369815388170
+  - 785904158002905088
+  - 785904274830786581
+  - 283922116577853441
+  - 540691009898676234
+  - 785906782232248371
+  - 802696758647980043
+  - 573994751620022297
+  - 597878565987418115
+  - 598530345087926323
+  - 573954983188234252
+  - 584125067932336151
+  - 631861137687707656
+  - 706545364735623224
 
-command-prefix: "?"
+command-prefix: "!"
 
 matchmaking: # List of possible queues for people to join
-    ranked:  # Must be lowercase
-        channel: 706545364735623224 # The channel for this queue
-        min-queue-time: 1 # The minimum amount of time in minutes a person can spend in queue
-        max-queue-time: 120 # The maximum amount of time in minutes a person can spend in queue
-        maptags: "ranked" # The map pool to use for this type of queue
-        players: 2 # Number of players per match
-        teams: 2 # Number of teams per match
-        matchmaking-band: 10000 # Match players only within a certain skill level
-        uses-bans: false # Use the bans system
-        post-notification: true # Post a notification in the channel when someone queues
-        notification-text: "Someone is looking for a **ranked** game!\nDM <@934827534510616576> with `!queue ranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
-    asyncranked:
-        channel: 706545364735623224
-        min-queue-time: 1
-        max-queue-time: 120
-        maptags: "asyncRanked"
-        players: 2
-        teams: 2
-        matchmaking-band: 10000
-        uses-bans: false
-        post-notification: true
-        notification-text: "Someone is looking for an **async** game!\nDM <@934827534510616576> with `!queue asyncranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+  ranked:  # Must be lowercase
+    channel: 631861137687707656 # The channel for this queue
+    min-queue-time: 1 # The minimum amount of time in minutes a person can spend in queue
+    max-queue-time: 120 # The maximum amount of time in minutes a person can spend in queue
+    maptags: "ranked" # The map pool to use for this type of queue
+    players: 2 # Number of players per match
+    teams: 2 # Number of teams per match
+    uses-matchmaking: true
+    matchmaking-band: 10000 # Match players only within a certain skill level
+    uses-bans: false # Use the bans system
+    post-notification: true # Post a notification in the channel when someone queues
+    notification-text: "Someone is looking for a **ranked** game!\nDM <@934827534510616576> with `!queue ranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+
+  1v1:
+    channel: 631861137687707656
+    min-queue-time: 1
+    max-queue-time: 120
+    maptags: "1v1"
+    players: 2
+    teams: 2
+    uses-matchmaking: false
+    matchmaking-band: 10000
+    uses-bans: false
+    post-notification: true
+    notification-text: "Someone is looking for a **1v1** game!\nDM <@934827534510616576> with `!queue 1v1` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+
+  2v2:
+    channel: 631861137687707656
+    min-queue-time: 1
+    max-queue-time: 120
+    maptags: "2v2"
+    players: 4
+    teams: 2
+    uses-matchmaking: false
+    matchmaking-band: 10000
+    uses-bans: false
+    post-notification: true
+    notification-text: "Someone is looking for a **2v2** game!\nDM <@934827534510616576> with `!queue 2v2` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+
+  ffa:
+    channel: 631861137687707656
+    min-queue-time: 1
+    max-queue-time: 120
+    maptags: "ffa"
+    players: 4
+    teams: 4
+    uses-matchmaking: false
+    matchmaking-band: 10000
+    uses-bans: false
+    post-notification: true
+    notification-text: "Someone is looking for a **Free for All** game!\nDM <@934827534510616576> with `!queue ffa` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
+
+  asyncranked:
+    channel: 631861137687707656
+    min-queue-time: 1
+    max-queue-time: 120
+    maptags: "asyncRanked"
+    players: 2
+    teams: 2
+    uses-matchmaking: true
+    matchmaking-band: 10000
+    uses-bans: false
+    post-notification: true
+    notification-text: "Someone is looking for an **async** game!\nDM <@934827534510616576> with `!queue asyncranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
 
 mmr-start-value: 0.0 # The mmr value a new player starts at
 mmr-minimum: 0.0 # Players cannot go below this MMR
 mmr-minimum-enabled: true # Enable minimum MMR
 mmr-scales: # Tune how much players earn depending on their ranking. Remove this for a pure ELO experience
-    - bronze:
-          start: 0 # Win more points if you're above 0 but below 50
-          winner: 0.2
-          loser: 0.0
-          emoji: ""
-    - silver:
-          start: 50 # Win the proper amount of points if you're above 50 but below 200
-          winner: 0.0
-          loser: 0.0
-          emoji: ":shield:"
-    - gold:
-          start: 200 # Win less points if you're above 200
-          winner: -0.2
-          loser: 0.0
-          emoji: ":crown:"  # Display emoji for the leaderboard
+  - bronze:
+      start: 0 # Win more points if you're above 0 but below 50
+      winner: 0.2
+      loser: 0.0
+      emoji: ""
+  - silver:
+      start: 50 # Win the proper amount of points if you're above 50 but below 200
+      winner: 0.0
+      loser: 0.0
+      emoji: ":shield:"
+  - gold:
+      start: 200 # Win less points if you're above 200
+      winner: -0.2
+      loser: 0.0
+      emoji: ":crown:"  # Display emoji for the leaderboard
 
 mmr-decay-amount: 20 # The amount of points to decay by
 mmr-decay-every: 2week # The period of time before decay counter resets (1week, 2week, 3week, 1month, 4day, never, etc.)
@@ -95,11 +137,13 @@ help-text: "Our <#806343595690033172> uses a custom MMR ranking system, adjustin
 
             !gamelimit: View how many games you must play until you appear on the leaderboard\n
 
-            !leaderboard: Displays the current leaderboard as a chat message\n
+            !leaderboard <page>: Displays the current leaderboard as a chat message\n
 
-            !seasonhighs: Displays everyone's season high mmr as a leaderboard chat message\n
+            !seasonhighs <page>: Displays everyone's season high mmr as a leaderboard chat message\n
 
             !ranked: Shows this text.\n
+
+            !mapTags <page>: Display all the available map tags to search for in the maps query
 
             !maps <query>: Displays the map pool for the specified query. ranked and asyncranked are valid tags for maps\n
 
@@ -115,9 +159,9 @@ help-text: "Our <#806343595690033172> uses a custom MMR ranking system, adjustin
 
             !ilose: Type !ilose @opponent#1234 if you lost against your opponent. This command is for manually entering in match data"
 
-discord-bot-token:  # Discord bot token
+discord-bot-token: # Discord bot token
 
 mysql-hostname: # Mysql server hostname
-mysql-database:  # Mysql db name
-mysql-user:  # Mysql username
-mysql-password:  # Mysql password
+mysql-database: # Mysql db name
+mysql-user: # Mysql username
+mysql-password: # Mysql password
