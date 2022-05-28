@@ -5,7 +5,7 @@ from model.mmr_leaderboard import LeaderboardEntry
 
 
 async def setElo(adminId, user, elo):
-    player = LeaderboardEntry(user)
+    player = LeaderboardEntry(user, filterBanned=False)
     if player.id == 0:
         embed = discord.embeds.Embed()
         embed.title = "Set Elo Error"
@@ -23,7 +23,7 @@ async def setElo(adminId, user, elo):
 
 
 async def setBan(adminId, user, isBanned):
-    player = LeaderboardEntry(user)
+    player = LeaderboardEntry(user, filterBanned=False)
     if player.id == 0:
         embed = discord.embeds.Embed()
         embed.title = "Ban Error"

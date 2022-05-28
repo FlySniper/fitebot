@@ -63,14 +63,17 @@ class LeaderboardEntry:
     gamesThisSeasonWon = 0
     seasonHigh = 0
 
-    def __init__(self, userId):
+    def __init__(self, userId, filterBanned=True):
         if userId is None:
             pass
         else:
-            self.queryUser(userId)
+            self.queryUser(userId, filterBanned)
 
-    def queryUser(self, userId):
-        result = dbQuery("SELECT * FROM mmr_leaderboard where id = %s", (userId,))
+    def queryUser(self, userId, filterBanned):
+        if filterBanned:
+            result = dbQuery("SELECT * FROM mmr_leaderboard where id = %s and isBanned = false", (userId,))
+        else:
+            result = dbQuery("SELECT * FROM mmr_leaderboard where id = %s", (userId,))
         if result is None or len(result) == 0:
             return None
         self.id = result[0][0]
