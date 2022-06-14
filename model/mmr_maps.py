@@ -87,12 +87,29 @@ class MapEntry:
                 "INSERT INTO mmr_maps_tags (mapName, mapTag) VALUES (%s, %s)",
                 (self.name, tag), True, False)
 
-    def updateMap(self):
-        update_query = """
-        UPDATE mmr_maps SET author = %s, link = %s, description = %s, WHERE name = %s
-        """
-        dbQuery(update_query, (self.author, self.link, self.description,
-                               self.name), True, False)
+    def updateMapName(self, newName):
+        dbQuery("UPDATE mmr_maps SET name = %s WHERE name = %s", (newName, self.name), True, False)
+        dbQuery("UPDATE mmr_maps_tags SET mapName = %s WHERE mapName = %s", (newName, self.name), True, False)
+        self.name = newName
+
+    def updateMapAuthor(self, newAuthor):
+        dbQuery("UPDATE mmr_maps SET author = %s WHERE name = %s", (newAuthor, self.name), True, False)
+        self.author = newAuthor
+
+    def updateMapLink(self, newLink):
+        dbQuery("UPDATE mmr_maps SET link = %s WHERE name = %s", (newLink, self.name), True, False)
+        self.link = newLink
+
+    def updateMapDescription(self, newDescription):
+        dbQuery("UPDATE mmr_maps SET description = %s WHERE name = %s", (newDescription, self.name), True, False)
+        self.description = newDescription
+
+    def updateMapTags(self, newTags):
+        dbQuery("DELETE FROM mmr_maps_tags WHERE mapName = %s", (self.name,), True, False)
+        for tag in newTags.split(","):
+            dbQuery(
+                "INSERT INTO mmr_maps_tags (mapName, mapTag) VALUES (%s, %s)",
+                (self.name, tag), True, False)
 
     def deleteMap(self):
         dbQuery("DELETE FROM mmr_maps WHERE name = %s", (self.name,), True, False)

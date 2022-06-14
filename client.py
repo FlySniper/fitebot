@@ -6,7 +6,8 @@ import mysql
 from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
-    getMapAddSession, removeMapAddSession, getMapTags, getTagsField
+    getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
+    EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis
@@ -49,10 +50,35 @@ class MyClient(discord.Client):
                     await message.channel.send(
                         "Please enter the tags for the map, separated by a comma without spaces:")
                 elif session.getCurrentState() == "tags":
-                    session.addMapToDatabase(message.content)
                     removeMapAddSession(message.author.id)
+                    session.addMapToDatabase(message.content)
                     await message.channel.send(
                         "Map Added to the database! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                elif session.getCurrentState() == EDIT_NAME:
+                    removeMapAddSession(message.author.id)
+                    session.editName(message.content)
+                    await message.channel.send(
+                        "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                elif session.getCurrentState() == EDIT_AUTHOR:
+                    removeMapAddSession(message.author.id)
+                    session.editAuthor(message.content)
+                    await message.channel.send(
+                        "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                elif session.getCurrentState() == EDIT_LINK:
+                    removeMapAddSession(message.author.id)
+                    session.editLink(message.content)
+                    await message.channel.send(
+                        "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                elif session.getCurrentState() == EDIT_DESCRIPTION:
+                    removeMapAddSession(message.author.id)
+                    session.editDescription(message.content)
+                    await message.channel.send(
+                        "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                elif session.getCurrentState() == EDIT_TAGS:
+                    removeMapAddSession(message.author.id)
+                    session.editTags(message.content)
+                    await message.channel.send(
+                        "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
             return
         commandArgs = message.content[1:].split(" ")
         commandArgs[0] = commandArgs[0].lower()
@@ -229,6 +255,51 @@ class MyClient(discord.Client):
                     return
                 name = " ".join(commandArgs[1:])
                 await message.channel.send(embed=await delMap(name))
+            if commandArgs[0] == "editmapname":
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Edit Map Error"
+                    embed.description = "Error: Please enter a map query as an argument"
+                    await message.channel.send(embed=embed)
+                    return
+                arg = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_NAME))
+            if commandArgs[0] == "editmapauthor":
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Edit Map Error"
+                    embed.description = "Error: Please enter a map query as an argument"
+                    await message.channel.send(embed=embed)
+                    return
+                arg = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_AUTHOR))
+            if commandArgs[0] == "editmaplink":
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Edit Map Error"
+                    embed.description = "Error: Please enter a map query as an argument"
+                    await message.channel.send(embed=embed)
+                    return
+                arg = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_LINK))
+            if commandArgs[0] == "editmapdescription":
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Edit Map Error"
+                    embed.description = "Error: Please enter a map query as an argument"
+                    await message.channel.send(embed=embed)
+                    return
+                arg = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_DESCRIPTION))
+            if commandArgs[0] == "editmaptags":
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Edit Map Error"
+                    embed.description = "Error: Please enter a map query as an argument"
+                    await message.channel.send(embed=embed)
+                    return
+                arg = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_TAGS))
             if commandArgs[0] == "ban":
                 if len(commandArgs) == 2:
                     embed = discord.embeds.Embed()

@@ -6,6 +6,12 @@ import discord
 from model.config import config
 from model.mmr_maps import MapEntry, queryMapsByTag, queryMapsByRandomTag, queryTags
 
+EDIT_NAME = "edit name"
+EDIT_AUTHOR = "edit author"
+EDIT_LINK = "edit link"
+EDIT_DESCRIPTION = "edit description"
+EDIT_TAGS = "edit tags"
+
 
 class MapAddSession:
     def __init__(self, discordId):
@@ -33,12 +39,35 @@ class MapAddSession:
         self.mapEntry.description = description
         self.state = "tags"
 
+    def editName(self, name):
+        self.mapEntry.updateMapName(name)
+
+    def editAuthor(self, author):
+        self.mapEntry.updateMapAuthor(author)
+
+    def editLink(self, link):
+        self.mapEntry.updateMapLink(link)
+
+    def editDescription(self, description):
+        self.mapEntry.updateMapDescription(description)
+
+    def editTags(self, tags):
+        self.mapEntry.updateMapTags(tags)
+
     def isExpired(self):
         currentTime = int((datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)).timestamp())
         return self.expire <= currentTime
 
     def getCurrentState(self):
         return self.state
+
+    def setEditMode(self, mapQuery, editState):
+        mapEntries = queryMapsByTag(mapQuery, 0, 2)
+        if len(mapEntries) != 1:
+            return False
+        self.mapEntry = mapEntries[0]
+        self.state = editState
+        return True
 
     def addMapToDatabase(self, tags):
         self.mapEntry.insertMap(tags)
@@ -95,7 +124,6 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
 
 
 async def getMapTags(start, end):
-    tags = queryTags(start, end)
     startIndex = start * end
     description = "***Map tags***"
     fieldValue = getTagsField(start, end)
@@ -153,7 +181,7 @@ async def startMapAddSession(author):
         if not mapAddSession.isExpired():
             embed = discord.embeds.Embed()
             embed.title = "Map Add Error"
-            embed.description = "Error: User is already adding a map, please finish adding the map"
+            embed.description = "Error: User is already adding/editing a map, please finish adding the map"
             return embed
     mapAddSessions[discordId] = MapAddSession(discordId)
     embed = discord.embeds.Embed()
@@ -162,6 +190,40 @@ async def startMapAddSession(author):
     embed.color = 0x20872c
     dmChannel = await author.create_dm()
     await dmChannel.send("Please enter the map name:")
+    return embed
+
+
+async def startMapEditSession(author, mapName, editType):
+    discordId = author.id
+    if discordId in mapAddSessions.keys():
+        mapAddSession = mapAddSessions[discordId]
+        if not mapAddSession.isExpired():
+            embed = discord.embeds.Embed()
+            embed.title = "Map Edit Error"
+            embed.description = "Error: User is already adding/editing a map, please finish adding the map"
+            return embed
+    session = MapAddSession(discordId)
+    if not session.setEditMode(mapName, editType):
+        embed = discord.embeds.Embed()
+        embed.title = "Map Edit Error"
+        embed.description = "Error: Map query does not resolve to exactly one map"
+        return embed
+    mapAddSessions[discordId] = session
+    embed = discord.embeds.Embed()
+    embed.title = "Map Edit"
+    embed.description = "Map Edit session started, please check your DMs"
+    embed.color = 0x20872c
+    dmChannel = await author.create_dm()
+    if editType == EDIT_NAME:
+        await dmChannel.send("Please enter the new map name:")
+    elif editType == EDIT_AUTHOR:
+        await dmChannel.send("Please enter the new map author:")
+    elif editType == EDIT_LINK:
+        await dmChannel.send("Please enter the new map link:")
+    elif editType == EDIT_DESCRIPTION:
+        await dmChannel.send("Please enter the new map description:")
+    elif editType == EDIT_TAGS:
+        await dmChannel.send("Please enter the new tags for the map, separated by a comma without spaces:")
     return embed
 
 
@@ -174,4 +236,7 @@ def getMapAddSession(discordId):
 
 
 def removeMapAddSession(discordId):
-    return mapAddSessions.pop(discordId)
+    try:
+        del mapAddSessions[discordId]
+    except KeyError:
+        pass
