@@ -28,7 +28,7 @@ class MyClient(discord.Client):
         refreshThread.start()
 
     async def on_message(self, message):
-        if not message.content.startswith(prefix):
+        if not message.content.startswith(prefix) and isinstance(message.channel, discord.channel.DMChannel):
             connectDb()
             if isInMapAddSession(message.author.id):
                 session = getMapAddSession(message.author.id)
