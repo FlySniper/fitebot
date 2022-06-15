@@ -16,12 +16,10 @@ EDIT_TAGS = "edit tags"
 class MapAddSession:
     def __init__(self, discordId):
         self.discordId = discordId
-
-    discordId = 0
-    expire = int((datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0) + datetime.timedelta(
-        minutes=30)).timestamp())
-    mapEntry = MapEntry()
-    state = "name"
+        self.expire = int((datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0) + datetime.timedelta(
+            minutes=30)).timestamp())
+        self.mapEntry = MapEntry()
+        self.state = "name"
 
     def addName(self, name):
         self.mapEntry.name = name
