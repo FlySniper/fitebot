@@ -28,7 +28,7 @@ class MyClient(discord.Client):
         refreshThread.start()
 
     async def on_message(self, message):
-        if not message.content.startswith(prefix) and isinstance(message.channel, discord.channel.DMChannel):
+        if isinstance(message.channel, discord.channel.DMChannel):
             connectDb()
             if isInMapAddSession(message.author.id):
                 session = getMapAddSession(message.author.id)
@@ -79,6 +79,8 @@ class MyClient(discord.Client):
                     session.editTags(message.content)
                     await message.channel.send(
                         "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
+            return
+        if not message.content.startswith(config["command-prefix"]):
             return
         commandArgs = message.content[1:].split(" ")
         commandArgs[0] = commandArgs[0].lower()
