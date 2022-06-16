@@ -47,7 +47,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
         if matchmakingEnabled:
             queueEntry.elo = elo
         else:
-            queueEntry.elo = 0
+            queueEntry.elo = 1
         queueEntry.queueName = queueName
         queueEntry.exitDate = futureTime
         queueEntry.insertUser()
@@ -136,16 +136,51 @@ async def queue(id, queueName, timeLimit, channel, bot):
             for entry in validQueueEntries:
                 entry.deleteUser()
             await channelObj.send(embed=mapEmbed)
+        else:
+            for entry in currentQueue:
+                currentDateTime = datetime.datetime.now(datetime.timezone.utc)
+                currentDateTime = currentDateTime.replace(tzinfo=None)
+                if entry.id == id and currentDateTime >= entry.exitDate:
+                    entry.deleteUser()
+                    newEntry = QueueEntry(None, None)
+                    newEntry.id = id
+                    if matchmakingEnabled:
+                        newEntry.elo = elo
+                    else:
+                        newEntry.elo = 1
+                    newEntry.queueName = queueName
+                    newEntry.exitDate = futureTime
+                    newEntry.insertUser()
+                    embed = discord.embeds.Embed()
+                    embed.title = "Queue"
+                    embed.color = 0x20872c
+                    embed.description = "You have entered the `" + queueName + "` queue"
+                    await channel.send(embed=embed)
+                    if queueConfig["post-notification"]:
+                        embed = discord.embeds.Embed()
+                        embed.title = "Queue"
+                        embed.color = 0x20872c
+                        embed.description = queueConfig["notification-text"].replace("queueTime", str(int(futureTime.timestamp())))
+                        await channelObj.send(embed=embed)
+                    return
+                elif entry.id == id:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Queue Error"
+                    embed.description = "You are already in the `" + queueName + "` queue"
+                    await channel.send(embed=embed)
+                    return
 
 
 async def cancel(id, queueName, bot):
     entry = QueueEntry(userId=id, queueName=queueName)
+    currentDateTime = datetime.datetime.now(datetime.timezone.utc)
+    currentDateTime = currentDateTime.replace(tzinfo=None)
     if entry.id == 0:
         embed = discord.embeds.Embed()
         embed.title = "Cancel Error"
         embed.description = "Error: user is not queued for a match in this queue"
         return embed
-    if entry.exitDate <= datetime.datetime.now(datetime.timezone.utc):
+    if entry.exitDate <= currentDateTime:
         entry.deleteUser()
         embed = discord.embeds.Embed()
         embed.color = 0xFF0000
