@@ -79,7 +79,7 @@ class MyClient(discord.Client):
                     session.editTags(message.content)
                     await message.channel.send(
                         "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
-            return
+                return
         if not message.content.startswith(config["command-prefix"]):
             return
         commandArgs = message.content[1:].split(" ")
