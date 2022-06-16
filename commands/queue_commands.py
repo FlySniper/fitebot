@@ -35,7 +35,6 @@ async def queue(id, queueName, timeLimit, channel, bot):
     else:
         elo = 1.0
 
-
     futureTime = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
     futureTime += datetime.timedelta(minutes=timeLimit)
 
@@ -77,6 +76,12 @@ async def queue(id, queueName, timeLimit, channel, bot):
             matchmakingBand = queueConfig["matchmaking-band"]
             for entry in currentQueue:
 
+                currentDateTime = datetime.datetime.now(datetime.timezone.utc)
+                currentDateTime = currentDateTime.replace(tzinfo=None)
+                if currentDateTime >= entry.exitDate:
+                    entry.deleteUser()
+                    continue
+
                 if entry.id == id:
                     embed = discord.embeds.Embed()
                     embed.title = "Queue Error"
@@ -84,10 +89,6 @@ async def queue(id, queueName, timeLimit, channel, bot):
                     await channel.send(embed=embed)
                     return
 
-                currentDateTime = datetime.datetime.now()
-                if currentDateTime >= entry.exitDate:
-                    entry.deleteUser()
-                    continue
                 if matchmakingBand > entry.elo - averageElo > -matchmakingBand:
                     validPlayers.append(entry.id)
                     validQueueEntries.append(entry)
@@ -106,6 +107,12 @@ async def queue(id, queueName, timeLimit, channel, bot):
                 embed.color = 0x20872c
                 embed.description = "You have entered the `" + queueName + "` queue"
                 await channel.send(embed=embed)
+                if queueConfig["post-notification"] and len(validPlayers) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Queue"
+                    embed.color = 0x20872c
+                    embed.description = queueConfig["notification-text"].replace("queueTime", str(int(futureTime.timestamp())))
+                    await channelObj.send(embed=embed)
                 return
             teams = [[] for team in range(0, requiredTeams)]
             random.shuffle(validPlayers)
@@ -138,7 +145,7 @@ async def cancel(id, queueName, bot):
         embed.title = "Cancel Error"
         embed.description = "Error: user is not queued for a match in this queue"
         return embed
-    if entry.exitDate <= datetime.datetime.now():
+    if entry.exitDate <= datetime.datetime.now(datetime.timezone.utc):
         entry.deleteUser()
         embed = discord.embeds.Embed()
         embed.color = 0xFF0000
