@@ -27,7 +27,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
         embed = discord.embeds.Embed()
         embed.title = "Queue Error"
         embed.color = 0x20872c
-        embed.description = "Error: You are not registered to play ranked matches, please use `!register` in the discord"
+        embed.description = "Error: You are not registered to play ranked matches, please use the `register` command in the discord"
         await channel.send(embed=embed)
         return
     if matchmakingEnabled:
