@@ -23,7 +23,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
         return
     queueConfig = matchmakingConfig[queueName]
     matchmakingEnabled = queueConfig["uses-matchmaking"]
-    if leaderboardEntry is None and matchmakingEnabled:
+    if (leaderboardEntry is None or leaderboardEntry.id == 0) and matchmakingEnabled:
         embed = discord.embeds.Embed()
         embed.title = "Queue Error"
         embed.color = 0x20872c
