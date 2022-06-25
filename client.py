@@ -110,6 +110,9 @@ class MyClient(discord.Client):
                     await message.channel.send(
                         embed=embed)
                     return
+                key = commandArgs[1]
+                if key in config["matchmaking"].keys():
+                    queueTime = config["matchmaking"][key]["default-queue-time"]
                 await queue(message.author.id, commandArgs[1], queueTime, message.channel, self)
             if commandArgs[0] == "iban":
                 pass
