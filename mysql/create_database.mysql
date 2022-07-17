@@ -1,0 +1,39 @@
+CREATE TABLE `mmr_leaderboard` (
+  `id` bigint(255) unsigned NOT NULL,
+  `elo` double DEFAULT 0,
+  `discordTag` varchar(128) DEFAULT NULL,
+  `isBanned` tinyint(4) NOT NULL DEFAULT 0,
+  `gamesThisDecay` int(11) DEFAULT 0,
+  `gamesThisSeason` int(11) DEFAULT 0,
+  `gamesThisSeasonWon` int(11) DEFAULT 0,
+  `seasonHigh` double DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `mmr_maps` (
+  `name` varchar(64) NOT NULL,
+  `author` varchar(64) NOT NULL DEFAULT 'Anonymous',
+  `link` varchar(256) NOT NULL,
+  `description` varchar(256) NOT NULL,
+  PRIMARY KEY (`name`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `mmr_maps_tags` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mapName` varchar(64) NOT NULL,
+  `mapTag` varchar(64) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `tag` (`mapTag`),
+  KEY `name` (`mapName`)
+) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `mmr_queue` (
+  `id` bigint(255) NOT NULL,
+  `elo` double DEFAULT 0,
+  `exitDate` datetime DEFAULT current_timestamp(),
+  `queueName` varchar(100) DEFAULT 'default',
+  `count` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`count`)
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4;
