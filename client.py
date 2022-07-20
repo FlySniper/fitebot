@@ -93,13 +93,6 @@ class MyClient(discord.Client):
                 embed = discord.embeds.Embed()
                 embed.title = "Queue Error"
                 embed.description = "Error: Please enter a number for the time in minutes you would like to queue for"
-                if len(commandArgs) == 3:
-                    try:
-                        queueTime = int(commandArgs[2])
-                    except ValueError:
-                        await message.channel.send(
-                            embed=embed)
-                        return
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()
                     embed.title = "Queue Error"
@@ -113,6 +106,13 @@ class MyClient(discord.Client):
                 key = commandArgs[1]
                 if key in config["matchmaking"].keys():
                     queueTime = config["matchmaking"][key]["default-queue-time"]
+                if len(commandArgs) == 3:
+                    try:
+                        queueTime = int(commandArgs[2])
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
                 await queue(message.author.id, commandArgs[1], queueTime, message.channel, self)
             if commandArgs[0] == "iban":
                 pass
