@@ -39,6 +39,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
     futureTime += datetime.timedelta(minutes=timeLimit)
 
     currentQueue = queryQueue(queueName)
+    requiredPlayers = queueConfig["players"]
     if len(currentQueue) == 0:
         matchmakingChannel = queueConfig["channel"]
         channelObj = bot.get_channel(matchmakingChannel)
@@ -67,7 +68,6 @@ async def queue(id, queueName, timeLimit, channel, bot):
         queueConfig = matchmakingConfig[queueName]
         matchmakingChannel = queueConfig["channel"]
         channelObj = bot.get_channel(matchmakingChannel)
-        requiredPlayers = queueConfig["players"]
         requiredTeams = queueConfig["teams"]
         if len(currentQueue) + 1 >= requiredPlayers:
             validPlayers = [id]
@@ -76,7 +76,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
             matchmakingBand = queueConfig["matchmaking-band"]
             for entry in currentQueue:
 
-                currentDateTime = datetime.datetime.now(datetime.timezone.utc)
+                currentDateTime = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
                 currentDateTime = currentDateTime.replace(tzinfo=None)
                 if currentDateTime >= entry.exitDate:
                     entry.deleteUser()
@@ -138,10 +138,12 @@ async def queue(id, queueName, timeLimit, channel, bot):
             await channelObj.send(embed=mapEmbed)
         else:
             for entry in currentQueue:
-                currentDateTime = datetime.datetime.now(datetime.timezone.utc)
+                currentDateTime = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
                 currentDateTime = currentDateTime.replace(tzinfo=None)
-                if entry.id == id and currentDateTime >= entry.exitDate:
+                isEntryExpired = entry.id == id and currentDateTime >= entry.exitDate
+                if isEntryExpired:
                     entry.deleteUser()
+                if entry.id != id or isEntryExpired:
                     newEntry = QueueEntry(None, None)
                     newEntry.id = id
                     if matchmakingEnabled:
@@ -163,7 +165,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
                         embed.description = queueConfig["notification-text"].replace("queueTime", str(int(futureTime.timestamp())))
                         await channelObj.send(embed=embed)
                     return
-                elif entry.id == id:
+                else:
                     embed = discord.embeds.Embed()
                     embed.title = "Queue Error"
                     embed.description = "You are already in the `" + queueName + "` queue"
