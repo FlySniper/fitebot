@@ -110,7 +110,7 @@ mmr-scales: # Tune how much players earn depending on their ranking. Remove this
       loser: 0.0
       emoji: ":shield:"
   - gold:
-      start: 200 # Win less points if you're above 200
+      start: 600 # Win less points if you're above 600
       winner: -0.2
       loser: 0.0
       emoji: ":crown:"  # Display emoji for the leaderboard
@@ -120,8 +120,8 @@ mmr-decay-every: 2week # The period of time before decay counter resets (1week, 
 mmr-decay-start: 150 # The MMR value that decay starts at
 mmr-decay-games: 4 # The amount of games to play to avoid decay within the time period
 mmr-points-bet: 32 # The maximum amount of mmr of both players combined on the line in a 2 player game
-mmr-power: 2 # The to the power of variable in the elo formula
-mmr-elo-divide: 1000 # The amount to dive the elo by before raising it to the power
+mmr-power: 10 # The to the power of variable in the elo formula
+mmr-elo-divide: 400 # The amount to dive the elo by before raising it to the power
 
 game-limit-count: 10 # Number of games you must play every season before you appear on the leaderboard
 

@@ -9,8 +9,8 @@ def mmr_calc(leaderboardEntry1, leaderboardEntry2, victory, updateStats):
     p1Adjustments = getAdjustments(leaderboardEntry1.elo)
     p2Adjustments = getAdjustments(leaderboardEntry2.elo)
 
-    r1 = (leaderboardEntry1.elo / divider) ** power
-    r2 = (leaderboardEntry2.elo / divider) ** power
+    r1 = power ** (leaderboardEntry1.elo / divider)
+    r2 = power ** (leaderboardEntry2.elo / divider)
 
     if r1 == 0.0 and r2 == 0.0:  # Prevent division by 0
         r1 = 0.001
