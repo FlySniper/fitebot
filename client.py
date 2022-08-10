@@ -10,7 +10,7 @@ from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSess
     EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
-from controller.pagination import reactWithPaginationEmojis
+from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
 from model import db
 from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
@@ -146,7 +146,8 @@ class MyClient(discord.Client):
                 embed.description = config["ranked-text"]
                 embed.color = 0x20872c
                 await message.channel.send(embed=embed)
-            if commandArgs[0] == "tags" or commandArgs[0] == "maptags" or commandArgs[0] == "groups" or commandArgs[0] == "mapgroups" or commandArgs[0] == "***floranclassifications***":
+            if commandArgs[0] == "tags" or commandArgs[0] == "maptags" or commandArgs[0] == "groups" or commandArgs[
+                0] == "mapgroups" or commandArgs[0] == "***floranclassifications***":
                 start = 0
                 count = 25
                 embed = discord.embeds.Embed()
@@ -190,7 +191,8 @@ class MyClient(discord.Client):
             if commandArgs[0] == "iwin" or commandArgs[0] == "iwon" or commandArgs[0] == "***sedgewins***":
                 await message.channel.send(
                     embed=await score_match(commandArgs, "<@" + str(message.author.id) + ">", 1, True, False))
-            if commandArgs[0] == "ilose" or commandArgs[0] == "ilost" or commandArgs[0] == "iloss" or commandArgs[0] == "***sedgeinjured***":
+            if commandArgs[0] == "ilose" or commandArgs[0] == "ilost" or commandArgs[0] == "iloss" or commandArgs[
+                0] == "***sedgeinjured***":
                 await message.channel.send(
                     embed=await score_match(commandArgs, "<@" + str(message.author.id) + ">", 2, True, False))
             if commandArgs[0] == "leaderboard" or commandArgs[0] == "***sedgestanding***":
@@ -360,108 +362,13 @@ class MyClient(discord.Client):
         print("Emoji Reacted: " + str(emoji))
         connectDb()
         if embed.title == "Leaderboard":
-            fieldCount = len(embed.fields)
-            if fieldCount > 0:
-                field = embed.fields[0]
-                splt = field.name.split("-")
-                start = int(splt[0]) - 1
-                count = int(splt[1]) - start
-                numEntries = countLeaderboard(0)
-                if emoji == "⬅":
-                    start -= count
-                elif emoji == "➡":
-                    start += count
-                elif emoji == "⏩":
-                    start = numEntries - count
-                elif emoji == "⏪":
-                    start = 0
-                else:
-                    return
-                start = max(0, min(start, numEntries))
-                fieldValue = generateLeaderboardField(start, count)
-                if fieldValue is None or fieldValue == "":
-                    return
-                embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),
-                                   value=fieldValue)
-                await reaction.message.edit(embed=embed)
-
+            await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0), generateLeaderboardField)
         if embed.title == "Season High Leaderboard":
-            fieldCount = len(embed.fields)
-            if fieldCount > 0:
-                field = embed.fields[0]
-                splt = field.name.split("-")
-                start = int(splt[0]) - 1
-                count = int(splt[1]) - start
-                numEntries = countLeaderboard(0)
-                if emoji == "⬅":
-                    start -= count
-                elif emoji == "➡":
-                    start += count
-                elif emoji == "⏩":
-                    start = numEntries - count
-                elif emoji == "⏪":
-                    start = 0
-                else:
-                    return
-                start = max(0, min(start, numEntries))
-                fieldValue = generateSeasonHighsField(start, count)
-                if fieldValue is None or fieldValue == "":
-                    return
-                embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),
-                                   value=fieldValue)
-                await reaction.message.edit(embed=embed)
-
+            await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0), generateSeasonHighsField)
         if embed.title.startswith("Maps Found"):
-            fieldCount = len(embed.fields)
-            if fieldCount > 0:
-                field = embed.fields[0]
-                splt = field.name.split("-")
-                tag = embed.title[12:-1]
-                numEntries = countMaps(tag)
-                start = int(splt[0]) - 1
-                count = int(splt[1]) - start
-                if emoji == "⬅":
-                    start -= count
-                elif emoji == "➡":
-                    start += count
-                elif emoji == "⏩":
-                    start = numEntries - count
-                elif emoji == "⏪":
-                    start = 0
-                else:
-                    return
-                start = max(0, min(start, numEntries))
-                fieldValue = getMapsField(tag, start, count)
-                if fieldValue is None or fieldValue == "":
-                    return
-                embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),
-                                   value=fieldValue)
-                await reaction.message.edit(embed=embed)
+            await arrowEmojiReactionMapTag(embed, emoji, reaction, getMapsField)
         if embed.title.startswith("Tags Found"):
-            fieldCount = len(embed.fields)
-            if fieldCount > 0:
-                field = embed.fields[0]
-                splt = field.name.split("-")
-                numEntries = countTags()
-                start = int(splt[0]) - 1
-                count = int(splt[1]) - start
-                if emoji == "⬅":
-                    start -= count
-                elif emoji == "➡":
-                    start += count
-                elif emoji == "⏩":
-                    start = numEntries - count
-                elif emoji == "⏪":
-                    start = 0
-                else:
-                    return
-                start = max(0, min(start, numEntries))
-                fieldValue = getTagsField(start, count)
-                if fieldValue is None or fieldValue == "":
-                    return
-                embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),
-                                   value=fieldValue)
-                await reaction.message.edit(embed=embed)
+            await arrowEmojiReaction(embed, emoji, reaction, countTags(), getTagsField)
 
 
 def connectDb():
