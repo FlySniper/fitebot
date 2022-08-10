@@ -134,9 +134,13 @@ season-normalize-max: 150 # Maximum normalize range
 leaderboard-text: "Groove of War players, ranked by Elo rating. Go to <#785910789453905980> and type !ranked to get started with ranked games"  # The text which appears in the body of the leaderboard embed
 season-high-leaderboard-text: "Groove of War players, sorted by Season High Elo. Go to <#785910789453905980> and type !ranked to get started with ranked games"  # The text which appears in the body of the leaderboard embed
 
-help-text: "Our <#806343595690033172> uses a custom MMR ranking system, adjusting your rank relative to your opponent's after a match\n
+help-text: "Fitebot uses a custom MMR ranking system, adjusting your rank relative to your opponent's after a match\n
+
+            It supports both ranked and unranked modes. Fitebot can also serve as a map database\n
 
             !register: Register for ranked matches\n
+
+            !ranked: Shows ranked rules.\n
 
             !stats: View your stats including your mmr\n
 
@@ -146,11 +150,9 @@ help-text: "Our <#806343595690033172> uses a custom MMR ranking system, adjustin
 
             !seasonhighs <page>: Displays everyone's season high mmr as a leaderboard chat message\n
 
-            !ranked: Shows this text.\n
+            !mapTags <page>: Display all the available map tags to search for in the maps query\n
 
-            !mapTags <page>: Display all the available map tags to search for in the maps query
-
-            !maps <query>: Displays the map pool for the specified query. ranked and asyncranked are valid tags for maps\n
+            !maps <query>: Displays the map pool for the specified query. ranked and rankedasync are valid tags for maps\n
 
             !maps <query> random: Displays a random map from the specified query, which could be a map name, or map tag\n
 
@@ -162,7 +164,22 @@ help-text: "Our <#806343595690033172> uses a custom MMR ranking system, adjustin
 
             !iwin: Type !iwin @opponent#1234 if you won against your opponent. This command is for manually entering in match data\n
 
-            !ilose: Type !ilose @opponent#1234 if you lost against your opponent. This command is for manually entering in match data"
+            !ilose: Type !ilose @opponent#1234 if you lost against your opponent. This command is for manually entering in match data\n
+
+            When registered, we store your discord ID, tag and map creations in a database. Please contact an admin if you would like them to be removed"
+
+ranked-text: "Our <#806343595690033172> uses a custom MMR ranking system, adjusting your rank relative to your opponent's after a match\n
+            CO Bans: Ryota, Caesar, Ragna and Koji. Players may optionally ban their opponent from playing 3 additional COs\n\n
+            1. Please be respectful to your opponent, if it's early in the game and they have to leave, don't report the match results\n
+            2. It's up to the winner to report the results, the loser may do so if they wish. If no results are reported the match is unranked\n
+            3. Only one of the players must report their win/loss. Please contact an admin for MMR correction if both players to do so\n
+            4. The `ranked` queue is only for live games with a 60min chess timer\n
+            5. The `asyncranked` queue is for async games with no timer, but can be played live\n
+            6. Players will only play ranked games on maps from the `!maps ranked` pool for live matches\n
+            7. Players will only play async ranked games on maps from the `!maps rankedasync` pool for async matches\n
+            8. The players may agree on a map other than the suggested map, however if they cannot agree on a map, the suggested map is played\n
+            \n
+            These are the guidelines for ranked. Please contact an admin for any clarifications"
 
 discord-bot-token: # Discord bot token
 

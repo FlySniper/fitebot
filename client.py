@@ -134,10 +134,16 @@ class MyClient(discord.Client):
                 await message.channel.send(embed=await cancel(message.author.id, commandArgs[1], self))
         if message.channel.id in config["command-channels"] or "all" in config["command-channels"]:
             connectDb()
-            if commandArgs[0] == "help" or commandArgs[0] == "ranked" or commandArgs[0] == "***floranlibrary***":
+            if commandArgs[0] == "help" or commandArgs[0] == "***floranlibrary***":
                 embed = discord.embeds.Embed()
                 embed.title = "Help"
                 embed.description = config["help-text"]
+                embed.color = 0x20872c
+                await message.channel.send(embed=embed)
+            if commandArgs[0] == "ranked" or commandArgs[0] == "***floranranked***":
+                embed = discord.embeds.Embed()
+                embed.title = "Ranked Rules"
+                embed.description = config["ranked-text"]
                 embed.color = 0x20872c
                 await message.channel.send(embed=embed)
             if commandArgs[0] == "tags" or commandArgs[0] == "maptags" or commandArgs[0] == "groups" or commandArgs[0] == "mapgroups" or commandArgs[0] == "***floranclassifications***":
