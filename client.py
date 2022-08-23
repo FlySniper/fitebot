@@ -7,7 +7,7 @@ from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
     getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
-    EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS
+    EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_FILE
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
@@ -41,9 +41,15 @@ class MyClient(discord.Client):
                     await message.channel.send("Please enter the map's author:")
                 elif session.getCurrentState() == "author":
                     session.addAuthor(message.content)
-                    await message.channel.send("Please send a link (not an attachment) for the map:")
+                    await message.channel.send("Please send an image link (not an attachment) for the map:")
                 elif session.getCurrentState() == "link":
                     session.addLink(message.content)
+                    if config["enable-file-upload"]:
+                        await message.channel.send("Please send a file link (not an attachment) for the map, or send `skip` to skip:")
+                    else:
+                        await message.channel.send("Please enter a description for the map:")
+                elif session.getCurrentState() == "file" and config["enable-file-upload"]:
+                    session.addFile(message.content)
                     await message.channel.send("Please enter a description for the map:")
                 elif session.getCurrentState() == "description":
                     session.addDescription(message.content)
@@ -65,6 +71,11 @@ class MyClient(discord.Client):
                     await message.channel.send(
                         "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
                 elif session.getCurrentState() == EDIT_LINK:
+                    removeMapAddSession(message.author.id)
+                    session.editLink(message.content)
+                    await message.channel.send(
+                        "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                elif session.getCurrentState() == EDIT_FILE:
                     removeMapAddSession(message.author.id)
                     session.editLink(message.content)
                     await message.channel.send(
@@ -173,7 +184,8 @@ class MyClient(discord.Client):
                         group = " ".join(commandArgs[1:len(commandArgs) - 1])
                     else:
                         group = " ".join(commandArgs[1:])
-                mapsEmbed = await message.channel.send(embed=await getMaps(group, isRandom, page, 25))
+                embed= await getMaps(group, isRandom, page, 25)
+                mapsEmbed = await message.channel.send(embed=embed)
                 if mapsEmbed.embeds[0].title.startswith("Maps Found"):
                     await reactWithPaginationEmojis(mapsEmbed)
             if commandArgs[0] == "season":
@@ -295,6 +307,15 @@ class MyClient(discord.Client):
                     return
                 arg = " ".join(commandArgs[1:])
                 await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_LINK))
+            if commandArgs[0] == "editmapfile" and config["enable-file-upload"]:
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Edit Map Error"
+                    embed.description = "Error: Please enter a map query as an argument"
+                    await message.channel.send(embed=embed)
+                    return
+                arg = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_FILE))
             if commandArgs[0] == "editmapdescription":
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()

@@ -9,6 +9,7 @@ from model.mmr_maps import MapEntry, queryMapsByTag, queryMapsByRandomTag, query
 EDIT_NAME = "edit name"
 EDIT_AUTHOR = "edit author"
 EDIT_LINK = "edit link"
+EDIT_FILE = "edit file"
 EDIT_DESCRIPTION = "edit description"
 EDIT_TAGS = "edit tags"
 
@@ -31,6 +32,16 @@ class MapAddSession:
 
     def addLink(self, link):
         self.mapEntry.link = link
+        if config["enable-file-upload"]:
+            self.state = "file"
+        else:
+            self.state = "description"
+
+    def addFile(self, file):
+        if file.lower().startswith("skip"):
+            pass
+        else:
+            self.mapEntry.file = file
         self.state = "description"
 
     def addDescription(self, description):
@@ -45,6 +56,9 @@ class MapAddSession:
 
     def editLink(self, link):
         self.mapEntry.updateMapLink(link)
+
+    def editFile(self, file):
+        self.mapEntry.updateMapFile(file)
 
     def editDescription(self, description):
         self.mapEntry.updateMapDescription(description)
@@ -103,7 +117,11 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
         embed.description = "{description}\nAuthor: {author}".format(description=entry.description, author=entry.author)
         embed.set_image(url=entry.link)
         embed.color = 0x20872c
-        return embed
+        if config["enable-file-upload"] and entry.file is not None and len(entry.file) > 0:
+            embed.url = entry.file
+            return embed
+        else:
+            return embed
 
     description = "***Map name (version) — Author***"
     fieldValue = ""
@@ -218,6 +236,8 @@ async def startMapEditSession(author, mapName, editType):
         await dmChannel.send("Please enter the new map author:")
     elif editType == EDIT_LINK:
         await dmChannel.send("Please enter the new map link:")
+    elif editType == EDIT_FILE:
+        await dmChannel.send("Please enter the new map file:")
     elif editType == EDIT_DESCRIPTION:
         await dmChannel.send("Please enter the new map description:")
     elif editType == EDIT_TAGS:

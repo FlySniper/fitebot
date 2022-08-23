@@ -23,6 +23,7 @@ command-channels: # Channels for regular commands
   - 706545364735623224
 
 command-prefix: "!"
+enable-file-upload: true
 
 matchmaking: # List of possible queues for people to join
   ranked:  # Must be lowercase
