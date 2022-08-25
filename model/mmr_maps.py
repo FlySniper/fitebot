@@ -16,7 +16,7 @@ def queryMapsByTag(tag, start, count):
         results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
     else:
         results = dbQuery(
-            "SELECT name, author, link, file, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) LIMIT %s, %s",
+            "SELECT name, author, link, website, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) LIMIT %s, %s",
             (tag, "%" + tag + "%", start, count))
     if results is None or len(results) == 0:
         return []
@@ -26,7 +26,7 @@ def queryMapsByTag(tag, start, count):
         entry.name = result[0].decode()
         entry.author = result[1].decode()
         entry.link = result[2].decode()
-        entry.file = result[3].decode()
+        entry.website = result[3].decode()
         entry.description = result[4].decode()
         if len(result) >= 6:
             entry.tags = result[5].decode()
@@ -39,7 +39,7 @@ def queryMapsByRandomTag(tag):
         result = dbQuery("SELECT * FROM mmr_maps ORDER BY RAND() LIMIT 1", ())
     else:
         result = dbQuery(
-            "SELECT name, author, link, file, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) ORDER BY RAND() LIMIT 1",
+            "SELECT name, author, link, website, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) ORDER BY RAND() LIMIT 1",
             (tag, "%" + tag + "%"))
     if result is None or len(result) == 0:
         return None
@@ -47,7 +47,7 @@ def queryMapsByRandomTag(tag):
     entry.name = result[0][0].decode()
     entry.author = result[0][1].decode()
     entry.link = result[0][2].decode()
-    entry.file = result[0][3].decode()
+    entry.website = result[0][3].decode()
     entry.description = result[0][4].decode()
     if len(result[0]) >= 6:
         entry.tags = result[0][5].decode()
@@ -77,14 +77,14 @@ class MapEntry:
     name = ""
     author = ""
     link = ""
-    file = ""
+    website = ""
     description = ""
     tags = ""
 
     def insertMap(self, tags):
         dbQuery(
-            "INSERT INTO mmr_maps (name, author, link, file, description) VALUES (%s, %s, %s, %s, %s)",
-            (self.name, self.author, self.link, self.file, self.description), True, False)
+            "INSERT INTO mmr_maps (name, author, link, website, description) VALUES (%s, %s, %s, %s, %s)",
+            (self.name, self.author, self.link, self.website, self.description), True, False)
         for tag in tags.split(","):
             dbQuery(
                 "INSERT INTO mmr_maps_tags (mapName, mapTag) VALUES (%s, %s)",
@@ -103,9 +103,9 @@ class MapEntry:
         dbQuery("UPDATE mmr_maps SET link = %s WHERE name = %s", (newLink, self.name), True, False)
         self.link = newLink
 
-    def updateMapFile(self, newFile):
-        dbQuery("UPDATE mmr_maps SET file = %s WHERE name = %s", (newFile, self.name), True, False)
-        self.file = newFile
+    def updateMapWebsite(self, newWebsite):
+        dbQuery("UPDATE mmr_maps SET website = %s WHERE name = %s", (newWebsite, self.name), True, False)
+        self.website = newWebsite
 
     def updateMapDescription(self, newDescription):
         dbQuery("UPDATE mmr_maps SET description = %s WHERE name = %s", (newDescription, self.name), True, False)

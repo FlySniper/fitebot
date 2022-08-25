@@ -9,7 +9,7 @@ from model.mmr_maps import MapEntry, queryMapsByTag, queryMapsByRandomTag, query
 EDIT_NAME = "edit name"
 EDIT_AUTHOR = "edit author"
 EDIT_LINK = "edit link"
-EDIT_FILE = "edit file"
+EDIT_WEBSITE = "edit website"
 EDIT_DESCRIPTION = "edit description"
 EDIT_TAGS = "edit tags"
 
@@ -32,16 +32,16 @@ class MapAddSession:
 
     def addLink(self, link):
         self.mapEntry.link = link
-        if config["enable-file-upload"]:
-            self.state = "file"
+        if config["enable-website-linking"]:
+            self.state = "website"
         else:
             self.state = "description"
 
-    def addFile(self, file):
-        if file.lower().startswith("skip"):
+    def addWebsite(self, website):
+        if website.lower() == "skip":
             pass
         else:
-            self.mapEntry.file = file
+            self.mapEntry.website = website
         self.state = "description"
 
     def addDescription(self, description):
@@ -57,8 +57,8 @@ class MapAddSession:
     def editLink(self, link):
         self.mapEntry.updateMapLink(link)
 
-    def editFile(self, file):
-        self.mapEntry.updateMapFile(file)
+    def editWebsite(self, website):
+        self.mapEntry.updateMapWebsite(website)
 
     def editDescription(self, description):
         self.mapEntry.updateMapDescription(description)
@@ -117,8 +117,8 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
         embed.description = "{description}\nAuthor: {author}".format(description=entry.description, author=entry.author)
         embed.set_image(url=entry.link)
         embed.color = 0x20872c
-        if config["enable-file-upload"] and entry.file is not None and len(entry.file) > 0:
-            embed.url = entry.file
+        if config["enable-website-linking"] and entry.website is not None and len(entry.website) > 0:
+            embed.url = entry.website
             return embed
         else:
             return embed
@@ -235,9 +235,9 @@ async def startMapEditSession(author, mapName, editType):
     elif editType == EDIT_AUTHOR:
         await dmChannel.send("Please enter the new map author:")
     elif editType == EDIT_LINK:
-        await dmChannel.send("Please enter the new map link:")
-    elif editType == EDIT_FILE:
-        await dmChannel.send("Please enter the new map file:")
+        await dmChannel.send("Please enter the new map media link:")
+    elif editType == EDIT_WEBSITE:
+        await dmChannel.send("Please enter the new map website:")
     elif editType == EDIT_DESCRIPTION:
         await dmChannel.send("Please enter the new map description:")
     elif editType == EDIT_TAGS:

@@ -7,7 +7,7 @@ from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
     getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
-    EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_FILE
+    EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
@@ -41,15 +41,15 @@ class MyClient(discord.Client):
                     await message.channel.send("Please enter the map's author:")
                 elif session.getCurrentState() == "author":
                     session.addAuthor(message.content)
-                    await message.channel.send("Please send an image link (not an attachment) for the map:")
+                    await message.channel.send("Please send a media link (not an attachment) for the map:")
                 elif session.getCurrentState() == "link":
                     session.addLink(message.content)
-                    if config["enable-file-upload"]:
-                        await message.channel.send("Please send a file link (not an attachment) for the map, or send `skip` to skip:")
+                    if config["enable-website-linking"]:
+                        await message.channel.send("Please send a URL for the map, or send `skip` to skip:")
                     else:
                         await message.channel.send("Please enter a description for the map:")
-                elif session.getCurrentState() == "file" and config["enable-file-upload"]:
-                    session.addFile(message.content)
+                elif session.getCurrentState() == "website" and config["enable-website-linking"]:
+                    session.addWebsite(message.content)
                     await message.channel.send("Please enter a description for the map:")
                 elif session.getCurrentState() == "description":
                     session.addDescription(message.content)
@@ -75,9 +75,9 @@ class MyClient(discord.Client):
                     session.editLink(message.content)
                     await message.channel.send(
                         "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
-                elif session.getCurrentState() == EDIT_FILE:
+                elif session.getCurrentState() == EDIT_WEBSITE:
                     removeMapAddSession(message.author.id)
-                    session.editLink(message.content)
+                    session.editWebsite(message.content)
                     await message.channel.send(
                         "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
                 elif session.getCurrentState() == EDIT_DESCRIPTION:
@@ -184,10 +184,13 @@ class MyClient(discord.Client):
                         group = " ".join(commandArgs[1:len(commandArgs) - 1])
                     else:
                         group = " ".join(commandArgs[1:])
-                embed= await getMaps(group, isRandom, page, 25)
-                mapsEmbed = await message.channel.send(embed=embed)
-                if mapsEmbed.embeds[0].title.startswith("Maps Found"):
-                    await reactWithPaginationEmojis(mapsEmbed)
+                embed = await getMaps(group, isRandom, page, 25)
+                try:
+                    mapsEmbed = await message.channel.send(embed=embed)
+                    if mapsEmbed.embeds[0].title.startswith("Maps Found"):
+                        await reactWithPaginationEmojis(mapsEmbed)
+                except discord.errors.HTTPException:
+                    await message.channel.send("Error: Map has an invalid media link")
             if commandArgs[0] == "season":
                 pass
             if commandArgs[0] == "stats" or commandArgs[0] == "***hunterpoints***":
@@ -307,7 +310,7 @@ class MyClient(discord.Client):
                     return
                 arg = " ".join(commandArgs[1:])
                 await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_LINK))
-            if commandArgs[0] == "editmapfile" and config["enable-file-upload"]:
+            if commandArgs[0] == "editmapwebsite" and config["enable-website-linking"]:
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()
                     embed.title = "Edit Map Error"
@@ -315,7 +318,7 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=embed)
                     return
                 arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_FILE))
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_WEBSITE))
             if commandArgs[0] == "editmapdescription":
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()

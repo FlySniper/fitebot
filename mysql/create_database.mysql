@@ -15,7 +15,7 @@ CREATE TABLE `mmr_maps` (
   `name` varchar(64) NOT NULL,
   `author` varchar(64) NOT NULL DEFAULT 'Anonymous',
   `link` varchar(256) NOT NULL,
-  `file` varchar(256) NOT NULL,
+  `website` varchar(256) NOT NULL,
   `description` varchar(256) NOT NULL,
   PRIMARY KEY (`name`),
   UNIQUE KEY `name_UNIQUE` (`name`)
