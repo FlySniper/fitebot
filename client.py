@@ -7,7 +7,8 @@ from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
 from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
     getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
-    EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE
+    EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE, MAP_MODE_TAGS_OR_NAME, MAP_MODE_NAME, MAP_MODE_TAGS, \
+    getMapTagField, getMapNameField
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
@@ -41,7 +42,7 @@ class MyClient(discord.Client):
                     await message.channel.send("Please enter the map's author:")
                 elif session.getCurrentState() == "author":
                     session.addAuthor(message.content)
-                    await message.channel.send("Please send a media link (not an attachment) for the map:")
+                    await message.channel.send("Please send a media link (not an attachment) for the map, or send `skip` to skip:")
                 elif session.getCurrentState() == "link":
                     session.addLink(message.content)
                     if config["enable-website-linking"]:
@@ -184,10 +185,40 @@ class MyClient(discord.Client):
                         group = " ".join(commandArgs[1:len(commandArgs) - 1])
                     else:
                         group = " ".join(commandArgs[1:])
-                embed = await getMaps(group, isRandom, page, 25)
+                embed = await getMaps(group, isRandom, page, 25, MAP_MODE_TAGS_OR_NAME)
                 try:
                     mapsEmbed = await message.channel.send(embed=embed)
                     if mapsEmbed.embeds[0].title.startswith("Maps Found"):
+                        await reactWithPaginationEmojis(mapsEmbed)
+                except discord.errors.HTTPException:
+                    await message.channel.send("Error: Map has an invalid media link")
+            if commandArgs[0] == "maptag" or commandArgs[0] == "***gloomtags***":
+                isRandom = False
+                page = 1
+                group = "all"
+                if len(commandArgs) > 2:
+                    isRandom = commandArgs[-1].lower() == "random"
+                if len(commandArgs) > 1:
+                    if isRandom:
+                        group = " ".join(commandArgs[1:len(commandArgs) - 1])
+                    else:
+                        group = " ".join(commandArgs[1:])
+                embed = await getMaps(group, isRandom, page, 25, MAP_MODE_TAGS)
+                try:
+                    mapsEmbed = await message.channel.send(embed=embed)
+                    if mapsEmbed.embeds[0].title.startswith("Maps in Tag"):
+                        await reactWithPaginationEmojis(mapsEmbed)
+                except discord.errors.HTTPException:
+                    await message.channel.send("Error: Map has an invalid media link")
+            if commandArgs[0] == "mapname" or commandArgs[0] == "***gloomname***":
+                page = 1
+                group = "all"
+                if len(commandArgs) > 1:
+                    group = " ".join(commandArgs[1:])
+                embed = await getMaps(group, False, page, 25, MAP_MODE_NAME)
+                try:
+                    mapsEmbed = await message.channel.send(embed=embed)
+                    if mapsEmbed.embeds[0].title.startswith("Maps with Name"):
                         await reactWithPaginationEmojis(mapsEmbed)
                 except discord.errors.HTTPException:
                     await message.channel.send("Error: Map has an invalid media link")
@@ -391,6 +422,10 @@ class MyClient(discord.Client):
             await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0), generateSeasonHighsField)
         if embed.title.startswith("Maps Found"):
             await arrowEmojiReactionMapTag(embed, emoji, reaction, getMapsField)
+        if embed.title.startswith("Maps in Tag"):
+            await arrowEmojiReactionMapTag(embed, emoji, reaction, getMapTagField)
+        if embed.title.startswith("Maps with Name"):
+            await arrowEmojiReactionMapTag(embed, emoji, reaction, getMapNameField)
         if embed.title.startswith("Tags Found"):
             await arrowEmojiReaction(embed, emoji, reaction, countTags(), getTagsField)
 

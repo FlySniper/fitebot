@@ -24,6 +24,7 @@ command-channels: # Channels for regular commands
 
 command-prefix: "!"
 enable-website-linking: true
+enable-media-linking: true
 
 matchmaking: # List of possible queues for people to join
   ranked:  # Must be lowercase
@@ -153,9 +154,11 @@ help-text: "Fitebot uses a custom MMR ranking system, adjusting your rank relati
 
             !mapTags <page>: Display all the available map tags to search for in the maps query\n
 
-            !maps <query>: Displays the map pool for the specified query. ranked and rankedasync are valid tags for maps\n
+            !mapTag <tag>: Display all the available maps with a given tag. Can use !mapTag <tag> random\n
 
-            !maps <query> random: Displays a random map from the specified query, which could be a map name, or map tag\n
+            !mapName <name>: Display all the available maps with a given name\n
+
+            !maps <query>: Displays the map pool for the specified query (map names containing the query, or tags matching the query). Can use !maps <query> random\n
 
             !queue <queue> 15: See !match\n
 

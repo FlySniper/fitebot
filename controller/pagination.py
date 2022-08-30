@@ -16,7 +16,7 @@ async def arrowEmojiReactionMapTag(embed, emoji, reaction, getFields):
     if fieldCount > 0:
         field = embed.fields[0]
         splt = field.name.split("-")
-        tag = embed.title[12:-1]
+        tag = embed.title[embed.title.rindex("(") + 1:-1]
         numEntries = countMaps(tag)
         start = int(splt[0]) - 1
         count = int(splt[1]) - start

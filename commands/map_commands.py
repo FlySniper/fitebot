@@ -4,7 +4,8 @@ import random
 import discord
 
 from model.config import config
-from model.mmr_maps import MapEntry, queryMapsByTag, queryMapsByRandomTag, queryTags
+from model.mmr_maps import MapEntry, queryMapsByTagOrName, queryMapsByRandomTagOrName, queryTags, queryMapsByName, \
+    queryMapsByTag, queryMapsByRandomTag
 
 EDIT_NAME = "edit name"
 EDIT_AUTHOR = "edit author"
@@ -12,6 +13,9 @@ EDIT_LINK = "edit link"
 EDIT_WEBSITE = "edit website"
 EDIT_DESCRIPTION = "edit description"
 EDIT_TAGS = "edit tags"
+MAP_MODE_TAGS_OR_NAME = "tags or name"
+MAP_MODE_TAGS = "tags"
+MAP_MODE_NAME = "name"
 
 
 class MapAddSession:
@@ -28,10 +32,18 @@ class MapAddSession:
 
     def addAuthor(self, author):
         self.mapEntry.author = author
-        self.state = "link"
+        if config["enable-media-linking"]:
+            self.state = "link"
+        elif config["enable-website-linking"]:
+            self.state = "website"
+        else:
+            self.state = "description"
 
     def addLink(self, link):
-        self.mapEntry.link = link
+        if link.lower() == "skip":
+            pass
+        else:
+            self.mapEntry.link = link
         if config["enable-website-linking"]:
             self.state = "website"
         else:
@@ -74,7 +86,7 @@ class MapAddSession:
         return self.state
 
     def setEditMode(self, mapQuery, editState):
-        mapEntries = queryMapsByTag(mapQuery, 0, 2)
+        mapEntries = queryMapsByName(mapQuery, 0, 2)
         if len(mapEntries) != 1:
             return False
         self.mapEntry = mapEntries[0]
@@ -88,15 +100,35 @@ class MapAddSession:
 mapAddSessions = {}
 
 
-async def getMaps(tag, isRandom, pageNum, mapsPerPage):
+async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode):
     startIndex = (pageNum - 1) * mapsPerPage
-    mapEntries = queryMapsByTag(tag, startIndex, mapsPerPage)
+    if mode == MAP_MODE_TAGS_OR_NAME:
+        mapEntries = queryMapsByTagOrName(tag, startIndex, mapsPerPage)
+        errorMessage = "Error: Map name or tag not found"
+        listTitle = "Maps Found ({tag})"
+    elif mode == MAP_MODE_TAGS:
+        mapEntries = queryMapsByTag(tag, startIndex, mapsPerPage)
+        errorMessage = "Error: Map tag not found"
+        listTitle = "Maps in Tag ({tag})"
+    elif mode == MAP_MODE_NAME:
+        mapEntries = queryMapsByName(tag, startIndex, mapsPerPage)
+        errorMessage = "Error: Map name not found"
+        listTitle = "Maps with Name ({tag})"
+    else:
+        mapEntries = []
+        errorMessage = "Error: Map mode not found"
+        listTitle = "Map Mode not Found"
     if isRandom:
-        entry = queryMapsByRandomTag(tag)
+        if mode == MAP_MODE_TAGS_OR_NAME:
+            entry = queryMapsByRandomTagOrName(tag)
+        elif mode == MAP_MODE_TAGS:
+            entry = queryMapsByRandomTag(tag)
+        else:
+            entry = None
         if entry is None or entry.name == "":
             embed = discord.embeds.Embed()
             embed.title = "Map Error"
-            embed.description = "Error: Map name or tag not found"
+            embed.description = errorMessage
             return embed
         embed = discord.embeds.Embed()
         embed.title = "Your Random Map: {name}".format(name=entry.name)
@@ -107,7 +139,7 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
     if len(mapEntries) == 0:
         embed = discord.embeds.Embed()
         embed.title = "Map Error"
-        embed.description = "Error: Map name or tag not found"
+        embed.description = errorMessage
         return embed
 
     if len(mapEntries) == 1:
@@ -115,7 +147,8 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
         embed = discord.embeds.Embed()
         embed.title = "Map Found: {name}".format(name=entry.name)
         embed.description = "{description}\nAuthor: {author}".format(description=entry.description, author=entry.author)
-        embed.set_image(url=entry.link)
+        if config["enable-media-linking"] and entry.link is not None and len(entry.link) > 0:
+            embed.set_image(url=entry.link)
         embed.color = 0x20872c
         if config["enable-website-linking"] and entry.website is not None and len(entry.website) > 0:
             embed.url = entry.website
@@ -131,7 +164,7 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage):
         count += 1
 
     embed = discord.embeds.Embed()
-    embed.title = "Maps Found ({tag})".format(tag=tag)
+    embed.title = listTitle.format(tag=tag)
     embed.description = description
     embed.add_field(name="{:d}-{:d}".format(startIndex + 1, startIndex + mapsPerPage),
                     value=fieldValue)
@@ -154,7 +187,27 @@ async def getMapTags(start, end):
 
 
 def getMapsField(tag, startIndex, mapsPerPage):
+    mapEntries = queryMapsByTagOrName(tag, startIndex, mapsPerPage)
+    fieldValue = ""
+    count = startIndex + 1
+    for entry in mapEntries:
+        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        count += 1
+    return fieldValue
+
+
+def getMapTagField(tag, startIndex, mapsPerPage):
     mapEntries = queryMapsByTag(tag, startIndex, mapsPerPage)
+    fieldValue = ""
+    count = startIndex + 1
+    for entry in mapEntries:
+        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        count += 1
+    return fieldValue
+
+
+def getMapNameField(tag, startIndex, mapsPerPage):
+    mapEntries = queryMapsByName(tag, startIndex, mapsPerPage)
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
@@ -174,11 +227,11 @@ def getTagsField(startIndex, mapsPerPage):
 
 
 async def delMap(name):
-    mapEntries = queryMapsByTag(name, 0, 25)
+    mapEntries = queryMapsByName(name, 0, 25)
     if len(mapEntries) != 1:
         embed = discord.embeds.Embed()
         embed.title = "Delete Map Error"
-        embed.description = "Error: Map name or tag not found"
+        embed.description = "Error: Exact Map name not found"
         return embed
     entry = mapEntries[0]
     embed = discord.embeds.Embed()

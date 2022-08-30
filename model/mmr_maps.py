@@ -11,7 +11,7 @@ def queryTags(start, end):
     return resultsList
 
 
-def queryMapsByTag(tag, start, count):
+def queryMapsByTagOrName(tag, start, count):
     if tag.lower() == "all":
         results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
     else:
@@ -34,13 +34,79 @@ def queryMapsByTag(tag, start, count):
     return entries
 
 
-def queryMapsByRandomTag(tag):
+def queryMapsByTag(tag, start, count):
+    if tag.lower() == "all":
+        results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
+    else:
+        results = dbQuery(
+            "SELECT name, author, link, website, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s GROUP BY(name) LIMIT %s, %s",
+            (tag, start, count))
+    if results is None or len(results) == 0:
+        return []
+    entries = []
+    for result in results:
+        entry = MapEntry()
+        entry.name = result[0].decode()
+        entry.author = result[1].decode()
+        entry.link = result[2].decode()
+        entry.website = result[3].decode()
+        entry.description = result[4].decode()
+        if len(result) >= 6:
+            entry.tags = result[5].decode()
+        entries.append(entry)
+    return entries
+
+
+def queryMapsByName(tag, start, count):
+    if tag.lower() == "all":
+        results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
+    else:
+        results = dbQuery(
+            "SELECT name, author, link, website, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE name = %s GROUP BY(name) LIMIT %s, %s",
+            (tag, start, count))
+    if results is None or len(results) == 0:
+        return []
+    entries = []
+    for result in results:
+        entry = MapEntry()
+        entry.name = result[0].decode()
+        entry.author = result[1].decode()
+        entry.link = result[2].decode()
+        entry.website = result[3].decode()
+        entry.description = result[4].decode()
+        if len(result) >= 6:
+            entry.tags = result[5].decode()
+        entries.append(entry)
+    return entries
+
+
+def queryMapsByRandomTagOrName(tag):
     if tag.lower() == "all":
         result = dbQuery("SELECT * FROM mmr_maps ORDER BY RAND() LIMIT 1", ())
     else:
         result = dbQuery(
             "SELECT name, author, link, website, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) ORDER BY RAND() LIMIT 1",
             (tag, "%" + tag + "%"))
+    if result is None or len(result) == 0:
+        return None
+    entry = MapEntry()
+    entry.name = result[0][0].decode()
+    entry.author = result[0][1].decode()
+    entry.link = result[0][2].decode()
+    entry.website = result[0][3].decode()
+    entry.description = result[0][4].decode()
+    if len(result[0]) >= 6:
+        entry.tags = result[0][5].decode()
+    return entry
+
+
+def queryMapsByRandomTag(tag):
+    if tag.lower() == "all":
+        result = dbQuery("SELECT * FROM mmr_maps ORDER BY RAND() LIMIT 1", ())
+    else:
+        result = dbQuery(
+            "SELECT name, author, link, website, description, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s GROUP BY(name) ORDER BY RAND() LIMIT 1",
+            (tag,))
     if result is None or len(result) == 0:
         return None
     entry = MapEntry()
