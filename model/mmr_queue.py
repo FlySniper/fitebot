@@ -61,4 +61,4 @@ class QueueEntry:
                                self.queueName, self.id), True, False)
 
     def deleteUser(self):
-        dbQuery("DELETE FROM mmr_queue WHERE id = %s and queueName = %s", (self.id, self.queueName.decode()), True, False)
+        dbQuery("DELETE FROM mmr_queue WHERE id = %s and queueName = %s", (self.id, self.queueName), True, False)

@@ -13,7 +13,7 @@ def queryLeaderboard(start, count, gameLimit):
         entry = LeaderboardEntry(None)
         entry.id = result[0]
         entry.elo = result[1]
-        entry.discordTag = result[2].decode()
+        entry.discordTag = result[2]
         entry.isBanned = result[3]
         entry.gamesThisDecay = result[4]
         entry.gamesThisSeason = result[5]
@@ -34,7 +34,7 @@ def querySeasonHighLeaderboard(start, count, gameLimit):
         entry = LeaderboardEntry(None)
         entry.id = result[0]
         entry.elo = result[1]
-        entry.discordTag = result[2].decode()
+        entry.discordTag = result[2]
         entry.isBanned = result[3]
         entry.gamesThisDecay = result[4]
         entry.gamesThisSeason = result[5]
@@ -78,7 +78,7 @@ class LeaderboardEntry:
             return None
         self.id = result[0][0]
         self.elo = result[0][1]
-        self.discordTag = result[0][2].decode()
+        self.discordTag = result[0][2]
         self.isBanned = result[0][3]
         self.gamesThisDecay = result[0][4]
         self.gamesThisSeason = result[0][5]

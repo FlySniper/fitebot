@@ -12,6 +12,7 @@ EDIT_AUTHOR = "edit author"
 EDIT_LINK = "edit link"
 EDIT_WEBSITE = "edit website"
 EDIT_DESCRIPTION = "edit description"
+EDIT_SHORT_DESCRIPTION = "edit short description"
 EDIT_TAGS = "edit tags"
 MAP_MODE_TAGS_OR_NAME = "tags or name"
 MAP_MODE_TAGS = "tags"
@@ -58,6 +59,10 @@ class MapAddSession:
 
     def addDescription(self, description):
         self.mapEntry.description = description
+        self.state = "short_description"
+
+    def addShortDescription(self, short_description):
+        self.mapEntry.short_description = short_description
         self.state = "tags"
 
     def editName(self, name):
@@ -74,6 +79,9 @@ class MapAddSession:
 
     def editDescription(self, description):
         self.mapEntry.updateMapDescription(description)
+
+    def editShortDescription(self, short_description):
+        self.mapEntry.updateMapShortDescription(short_description)
 
     def editTags(self, tags):
         self.mapEntry.updateMapTags(tags)
@@ -156,11 +164,11 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode):
         else:
             return embed
 
-    description = "***Map name (version) — Author***"
+    description = "***Map name (version) — Summary***"
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
         count += 1
 
     embed = discord.embeds.Embed()
@@ -191,7 +199,7 @@ def getMapsField(tag, startIndex, mapsPerPage):
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
         count += 1
     return fieldValue
 
@@ -201,7 +209,7 @@ def getMapTagField(tag, startIndex, mapsPerPage):
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
         count += 1
     return fieldValue
 
@@ -211,7 +219,7 @@ def getMapNameField(tag, startIndex, mapsPerPage):
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {author}\n".format(count=count, name=entry.name, author=entry.author)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
         count += 1
     return fieldValue
 
@@ -293,6 +301,8 @@ async def startMapEditSession(author, mapName, editType):
         await dmChannel.send("Please enter the new map website:")
     elif editType == EDIT_DESCRIPTION:
         await dmChannel.send("Please enter the new map description:")
+    elif editType == EDIT_SHORT_DESCRIPTION:
+        await dmChannel.send("Please enter the new map short description:")
     elif editType == EDIT_TAGS:
         await dmChannel.send("Please enter the new tags for the map, separated by a comma without spaces:")
     return embed

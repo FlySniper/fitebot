@@ -8,7 +8,7 @@ from commands.leaderboard_commands import displayLeaderboard, generateLeaderboar
 from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
     getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
     EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE, MAP_MODE_TAGS_OR_NAME, MAP_MODE_NAME, MAP_MODE_TAGS, \
-    getMapTagField, getMapNameField
+    getMapTagField, getMapNameField, EDIT_SHORT_DESCRIPTION
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
@@ -55,6 +55,10 @@ class MyClient(discord.Client):
                 elif session.getCurrentState() == "description":
                     session.addDescription(message.content)
                     await message.channel.send(
+                        "Please enter a short description for the map:")
+                elif session.getCurrentState() == "short_description":
+                    session.addShortDescription(message.content)
+                    await message.channel.send(
                         "Please enter the tags for the map, separated by a comma without spaces:")
                 elif session.getCurrentState() == "tags":
                     removeMapAddSession(message.author.id)
@@ -84,6 +88,11 @@ class MyClient(discord.Client):
                 elif session.getCurrentState() == EDIT_DESCRIPTION:
                     removeMapAddSession(message.author.id)
                     session.editDescription(message.content)
+                    await message.channel.send(
+                        "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
+                elif session.getCurrentState() == EDIT_SHORT_DESCRIPTION:
+                    removeMapAddSession(message.author.id)
+                    session.editShortDescription(message.content)
                     await message.channel.send(
                         "Map Edited! Please verify that it was successfully added, maps with a duplicate name will not be added")
                 elif session.getCurrentState() == EDIT_TAGS:
@@ -359,6 +368,15 @@ class MyClient(discord.Client):
                     return
                 arg = " ".join(commandArgs[1:])
                 await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_DESCRIPTION))
+            if commandArgs[0] == "editmapshortdescription":
+                if len(commandArgs) == 1:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Edit Map Error"
+                    embed.description = "Error: Please enter a map query as an argument"
+                    await message.channel.send(embed=embed)
+                    return
+                arg = " ".join(commandArgs[1:])
+                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_SHORT_DESCRIPTION))
             if commandArgs[0] == "editmaptags":
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()
@@ -443,6 +461,5 @@ def connectDb():
     elif not db.connection.is_connected():
         db.connection.reconnect(10, 1)
 
-
-client = MyClient()
+client = MyClient(intents=discord.Intents.all())
 client.run(config["discord-bot-token"])

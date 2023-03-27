@@ -23,8 +23,8 @@ command-channels: # Channels for regular commands
   - 706545364735623224
 
 command-prefix: "!"
-enable-website-linking: true
-enable-media-linking: true
+enable-website-linking: true # Allow map results to link to an external website. Setting this to false, removes the website prompt when adding a new map
+enable-media-linking: true # Allow map results to link to a media source. Setting this to false, removes the media prompt when adding a new map
 
 matchmaking: # List of possible queues for people to join
   ranked:  # Must be lowercase
