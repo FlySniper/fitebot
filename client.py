@@ -12,6 +12,7 @@ from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSess
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
+from controller.seasons import SeasonScheduler
 from model import db
 from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
@@ -22,11 +23,17 @@ prefix = config["command-prefix"]
 
 class MyClient(discord.Client):
 
+    def __init__(self, ):
+        super().__init__(intents=discord.Intents.all())
+        self.seasonScheduler = None
+
     async def on_ready(self):
         print("Bot Starting")
         connectDb()
         refreshThread = Thread(target=refreshConfig)
         refreshThread.start()
+        self.seasonScheduler = SeasonScheduler()
+        self.seasonScheduler.scheduleSeason()
 
     async def on_message(self, message):
         if isinstance(message.channel, discord.channel.DMChannel):
@@ -42,7 +49,8 @@ class MyClient(discord.Client):
                     await message.channel.send("Please enter the map's author:")
                 elif session.getCurrentState() == "author":
                     session.addAuthor(message.content)
-                    await message.channel.send("Please send a media link (not an attachment) for the map, or send `skip` to skip:")
+                    await message.channel.send(
+                        "Please send a media link (not an attachment) for the map, or send `skip` to skip:")
                 elif session.getCurrentState() == "link":
                     session.addLink(message.content)
                     if config["enable-website-linking"]:
@@ -278,6 +286,27 @@ class MyClient(discord.Client):
                 leaderboardMessage = await message.channel.send(
                     embed=await displayLeaderboard(start - 1, count))
                 await reactWithPaginationEmojis(leaderboardMessage)
+            if commandArgs[0] == "season" or commandArgs[0] == "***sedgehistory***":
+                start = 1
+                count = 25
+                season = 0
+                embed = discord.embeds.Embed()
+                embed.title = "Leaderboard Error"
+                embed.description = "Error: Please enter one or two valid numbers for the leaderboard range"
+                if len(commandArgs) == 2:
+                    try:
+                        season = int(commandArgs[1])
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
+                elif len(commandArgs) != 1:
+                    await message.channel.send(
+                        embed=embed)
+                    return
+                leaderboardMessage = await message.channel.send(
+                    embed=await displayLeaderboard(start - 1, count, season=season))
+                await reactWithPaginationEmojis(leaderboardMessage)
             if commandArgs[0] == "seasonhighs" or commandArgs[0] == "***sedgeheights***":
                 start = 1
                 count = 25
@@ -436,6 +465,11 @@ class MyClient(discord.Client):
         connectDb()
         if embed.title == "Leaderboard":
             await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0), generateLeaderboardField)
+        if embed.title.startswith("Leaderboard from Season"):
+            tempTitle = embed.title
+            tempTitle = tempTitle.replace("Leaderboard from Season ", "")
+            season = int(tempTitle)
+            await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0, season=season), generateLeaderboardField, season=season)
         if embed.title == "Season High Leaderboard":
             await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0), generateSeasonHighsField)
         if embed.title.startswith("Maps Found"):
@@ -461,5 +495,6 @@ def connectDb():
     elif not db.connection.is_connected():
         db.connection.reconnect(10, 1)
 
-client = MyClient(intents=discord.Intents.all())
+
+client = MyClient()
 client.run(config["discord-bot-token"])

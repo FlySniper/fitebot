@@ -37,6 +37,8 @@ async def register(user, tag):
         player.gamesThisDecay = 0
         player.gamesThisSeason = 0
         player.gamesThisSeasonWon = 0
+        player.gamesTotal = 0
+        player.gamesTotalWon = 0
         player.seasonHigh = player.elo
         player.insertUser()
         embed = discord.embeds.Embed()

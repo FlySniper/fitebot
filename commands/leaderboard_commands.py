@@ -4,22 +4,25 @@ from model.config import config
 from model.mmr_leaderboard import queryLeaderboard, countLeaderboard, querySeasonHighLeaderboard
 
 
-async def displayLeaderboard(start, count):
+async def displayLeaderboard(start, count, season=0):
     leaderboardText = config["leaderboard-text"]
     embed = discord.embeds.Embed()
-    embed.title = "Leaderboard"
+    if season == 0:
+        embed.title = "Leaderboard"
+    else:
+        embed.title = f"Leaderboard from Season {season}"
     embed.description = leaderboardText
     numEntries = countLeaderboard(0)
     start = max(0, min(start, numEntries - 1))
-    fieldValue = generateLeaderboardField(start, count)
+    fieldValue = generateLeaderboardField(start, count, season=season)
 
     embed.add_field(name="{:d}-{:d}".format(start + 1, start + count),
                     value=fieldValue)
     return embed
 
 
-def generateLeaderboardField(start, count):
-    entries = queryLeaderboard(start, count, config["game-limit-count"])
+def generateLeaderboardField(start, count, season=0):
+    entries = queryLeaderboard(start, count, config["game-limit-count"], season=season)
     index = 0
     fieldValue = ""
     for entry in entries:

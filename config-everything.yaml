@@ -128,8 +128,8 @@ mmr-elo-divide: 400 # The amount to dive the elo by before raising it to the pow
 game-limit-count: 10 # Number of games you must play every season before you appear on the leaderboard
 
 
-season-every: 2month # The period of time before we increment the season number (1week, 2week, 3week, 1month, 4day, etc.)
-season-normalize: true # Normalize the seasons to be within a certain mmr range
+season-every: 4 # The period of time before we increment the season number in months (1, 2, etc.)
+season-normalize: false # Normalize the seasons to be within a certain mmr range
 season-normalize-min: 10 # Minimum normalize range
 season-normalize-max: 150 # Maximum normalize range
 

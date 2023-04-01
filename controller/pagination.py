@@ -39,7 +39,7 @@ async def arrowEmojiReactionMapTag(embed, emoji, reaction, getFields):
         await reaction.message.edit(embed=embed)
 
 
-async def arrowEmojiReaction(embed, emoji, reaction, numEntries, getFields):
+async def arrowEmojiReaction(embed, emoji, reaction, numEntries, getFields, season=0):
     fieldCount = len(embed.fields)
     if fieldCount > 0:
         field = embed.fields[0]
@@ -57,7 +57,10 @@ async def arrowEmojiReaction(embed, emoji, reaction, numEntries, getFields):
         else:
             return
         start = max(0, min(start, numEntries))
-        fieldValue = getFields(start, count)
+        if season == 0:
+            fieldValue = getFields(start, count)
+        else:
+            fieldValue = getFields(start, count, season=season)
         if fieldValue is None or fieldValue == "":
             return
         embed.set_field_at(0, name="{:d}-{:d}".format(start + 1, start + count),

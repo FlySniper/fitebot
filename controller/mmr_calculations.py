@@ -25,11 +25,13 @@ def mmr_calc(leaderboardEntry1, leaderboardEntry2, victory, updateStats):
         s2 = 0.0 + p2Adjustments[1]
         if updateStats:
             leaderboardEntry1.gamesThisSeasonWon += 1
+            leaderboardEntry1.gamesTotalWon += 1
     elif victory == 2:
         s1 = 0.0 + p1Adjustments[1]
         s2 = 1.0 + p2Adjustments[0]
         if updateStats:
             leaderboardEntry2.gamesThisSeasonWon += 1
+            leaderboardEntry2.gamesTotalWon += 1
     diff1 = maxDiff * (s1 - min(1.0, max(0.0, e1)))
     diff2 = maxDiff * (s2 - min(1.0, max(0.0, e2)))
     leaderboardEntry1.elo += diff1
@@ -44,6 +46,8 @@ def mmr_calc(leaderboardEntry1, leaderboardEntry2, victory, updateStats):
         leaderboardEntry2.gamesThisDecay += 1
         leaderboardEntry1.gamesThisSeason += 1
         leaderboardEntry2.gamesThisSeason += 1
+        leaderboardEntry1.gamesTotal += 1
+        leaderboardEntry2.gamesTotal += 1
 
     if leaderboardEntry1.elo > leaderboardEntry1.seasonHigh:
         leaderboardEntry1.seasonHigh = leaderboardEntry1.elo
