@@ -7,7 +7,7 @@ def queryTags(start, end):
     if results is None or len(results) == 0:
         return []
     for result in results:
-        resultsList.append(result[0].decode())
+        resultsList.append(result[0])
     return resultsList
 
 
