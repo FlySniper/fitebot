@@ -13,13 +13,13 @@ async def stats(user):
         embed.color = 0x20872c
         embed.description = "Error: user is not registered for ranked matches. Use the `register` command to begin"
         return embed
-    description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(
+    description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nGames Total: {:d}\nVictories Total: {:d}\nSeason High MMR: {:.2f}".format(
         player.elo, player.gamesThisDecay, config["mmr-decay-games"], player.gamesThisSeason,
-        config["game-limit-count"], player.gamesThisSeasonWon, player.seasonHigh)
+        config["game-limit-count"], player.gamesThisSeasonWon, player.gamesTotal, player.gamesTotalWon, player.seasonHigh)
     if config["mmr-decay-every"].lower() == "never":
-        description = "MMR: {:.2f}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nSeason High MMR: {:.2f}".format(
+        description = "MMR: {:.2f}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nGames Total: {:d}\nVictories Total: {:d}\nSeason High MMR: {:.2f}".format(
             player.elo, player.gamesThisSeason, config["game-limit-count"], player.gamesThisSeasonWon,
-            player.seasonHigh)
+            player.gamesTotal, player.gamesTotalWon, player.seasonHigh)
     embed = discord.embeds.Embed()
     embed.title = "Your Statistics"
     embed.color = 0x20872c
