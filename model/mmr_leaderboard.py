@@ -7,7 +7,7 @@ def queryLeaderboard(start, count, gameLimit, season=0):
         results = dbQuery(
             "SELECT * FROM mmr_leaderboard where isBanned=false and gamesThisSeason>=%s ORDER BY elo DESC LIMIT %s, %s",
             (gameLimit, start, count))
-    elif season is int:
+    elif isinstance(season, int):
         results = dbQuery(
             f"SELECT * FROM mmr_leaderboard_season_{season} where isBanned=false and gamesThisSeason>=%s ORDER BY elo DESC LIMIT %s, %s",
             (gameLimit, start, count))
@@ -60,7 +60,7 @@ def countLeaderboard(gameLimit, season=0):
         results = dbQuery(
             "SELECT COUNT(*) FROM mmr_leaderboard where isBanned=false and gamesThisSeason>=%s ORDER BY elo DESC",
             (gameLimit,))
-    elif season is int:
+    elif isinstance(season, int):
         results = dbQuery(
             f"SELECT COUNT(*) FROM mmr_leaderboard_season_{season} where isBanned=false and gamesThisSeason>=%s ORDER BY elo DESC",
             (gameLimit,))

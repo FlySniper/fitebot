@@ -7,24 +7,34 @@ from dateutil import relativedelta
 from model.mmr_season import querySeason, backupLeaderboardForNewSeason, incrementSeason
 
 
-class SeasonScheduler:
+def longSleep(sleepTime):
+    while sleepTime > 0.0:
+        time.sleep(min(600.0, sleepTime))
+        sleepTime -= 600.0
 
-    def __init__(self):
-        self.scheduler = sched.scheduler(time.time, time.sleep)
 
-    def newSeason(self):
-        seasonNumber = querySeason()
-        backupLeaderboardForNewSeason(seasonNumber)
-        incrementSeason()
-        self.scheduleSeason()
+scheduler = sched.scheduler(time.time, longSleep)
 
-    def scheduleSeason(self):
-        currentMonth = datetime.datetime.now().month
-        modMonth = (currentMonth % config["season-every"])
-        delta = relativedelta.relativedelta(months=config["season-every"] - modMonth, day=1)
-        now = datetime.datetime.now()
-        next_season = (now + delta).replace(microsecond=0, second=0, minute=0, hour=0, day=1)
 
-        wait_seconds = max((next_season - now).total_seconds(), 0)
-        self.scheduler.enter(wait_seconds, 1, self.newSeason)
-        self.scheduler.run(blocking=False)
+def newSeason():
+    seasonNumber = querySeason()
+    print(f"Updating to season {seasonNumber + 1} from {seasonNumber}")
+    backupLeaderboardForNewSeason(seasonNumber)
+    incrementSeason()
+    scheduleSeason()
+
+
+def scheduleSeason():
+    seconds = getNextSeason()
+    scheduler.enter(seconds, 1, newSeason)
+    scheduler.run(blocking=True)
+
+
+def getNextSeason():
+    currentMonth = datetime.datetime.now().month
+    modMonth = (currentMonth % config["season-every"])
+    delta = relativedelta.relativedelta(months=config["season-every"] - modMonth, day=1)
+    now = datetime.datetime.now()
+    next_season = (now + delta).replace(microsecond=0, second=0, minute=0, hour=0, day=1)
+    seconds = max((next_season - now).total_seconds(), 0)
+    return seconds

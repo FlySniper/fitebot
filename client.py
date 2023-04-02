@@ -1,3 +1,5 @@
+import datetime
+
 import discord
 from threading import Thread
 
@@ -12,11 +14,12 @@ from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSess
 from commands.mmr_commands import score_match, register, stats, gameLimit, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
-from controller.seasons import SeasonScheduler
+from controller.seasons import scheduleSeason, getNextSeason
 from model import db
 from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
 from model.mmr_maps import countMaps, countTags
+from model.mmr_season import querySeason
 
 prefix = config["command-prefix"]
 
@@ -32,8 +35,8 @@ class MyClient(discord.Client):
         connectDb()
         refreshThread = Thread(target=refreshConfig)
         refreshThread.start()
-        self.seasonScheduler = SeasonScheduler()
-        self.seasonScheduler.scheduleSeason()
+        scheduleSeasonThread = Thread(target=scheduleSeason)
+        scheduleSeasonThread.start()
 
     async def on_message(self, message):
         if isinstance(message.channel, discord.channel.DMChannel):
@@ -239,8 +242,6 @@ class MyClient(discord.Client):
                         await reactWithPaginationEmojis(mapsEmbed)
                 except discord.errors.HTTPException:
                     await message.channel.send("Error: Map has an invalid media link")
-            if commandArgs[0] == "season":
-                pass
             if commandArgs[0] == "stats" or commandArgs[0] == "***hunterpoints***":
                 await message.channel.send(embed=await stats(message.author.id))
             if commandArgs[0] == "decay" or commandArgs[0] == "***rot***":
@@ -292,7 +293,7 @@ class MyClient(discord.Client):
                 season = 0
                 embed = discord.embeds.Embed()
                 embed.title = "Leaderboard Error"
-                embed.description = "Error: Please enter one or two valid numbers for the leaderboard range"
+                embed.description = "Error: Please enter a valid number for the leaderboard range"
                 if len(commandArgs) == 2:
                     try:
                         season = int(commandArgs[1])
@@ -304,9 +305,15 @@ class MyClient(discord.Client):
                     await message.channel.send(
                         embed=embed)
                     return
-                leaderboardMessage = await message.channel.send(
-                    embed=await displayLeaderboard(start - 1, count, season=season))
-                await reactWithPaginationEmojis(leaderboardMessage)
+                if season != 0:
+                    leaderboardMessage = await message.channel.send(
+                        embed=await displayLeaderboard(start - 1, count, season=season))
+                    await reactWithPaginationEmojis(leaderboardMessage)
+                else:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Current Season"
+                    embed.description = f"We are currently on Season {querySeason()}.\nNext season starts on <t:{int(getNextSeason() + (datetime.datetime.now() - datetime.datetime(1970,1,1)).total_seconds())}:F>"
+                    await message.channel.send(embed=embed)
             if commandArgs[0] == "seasonhighs" or commandArgs[0] == "***sedgeheights***":
                 start = 1
                 count = 25

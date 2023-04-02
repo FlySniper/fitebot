@@ -169,6 +169,8 @@ help-text: "Fitebot uses a custom MMR ranking system, adjusting your rank relati
             !iwin: Type !iwin @opponent#1234 if you won against your opponent. This command is for manually entering in match data\n
 
             !ilose: Type !ilose @opponent#1234 if you lost against your opponent. This command is for manually entering in match data\n
+            
+            !season <number>: Type !season to view the current season number and when the next season starts. Type !season <season number> to see the leaderboard for that season.\n
 
             When registered, we store your discord ID, tag and map creations in a database. Please contact an admin if you would like them to be removed"
 
