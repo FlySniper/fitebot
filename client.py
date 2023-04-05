@@ -3,10 +3,14 @@ import datetime
 import discord
 from threading import Thread
 
+from discord import app_commands, Interaction
+from discord.ext.commands import is_owner, Context
+
 import mysql
 
 from commands.admin_commands import setElo, setBan
-from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField
+from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField, \
+    displaySeasonHighs
 from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
     getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
     EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE, MAP_MODE_TAGS_OR_NAME, MAP_MODE_NAME, MAP_MODE_TAGS, \
@@ -22,13 +26,20 @@ from model.mmr_maps import countMaps, countTags
 from model.mmr_season import querySeason
 
 prefix = config["command-prefix"]
+DEBUG_GUILD_IDS = None  # [706545364249083906]
+
+
+async def getCommandArgs(args):
+    commandArgs = args[1:].split(" ")
+    commandArgs[0] = commandArgs[0].lower()
+    print(commandArgs[0])
+    return commandArgs
 
 
 class MyClient(discord.Client):
 
-    def __init__(self, ):
+    def __init__(self):
         super().__init__(intents=discord.Intents.all())
-        self.seasonScheduler = None
 
     async def on_ready(self):
         print("Bot Starting")
@@ -37,6 +48,10 @@ class MyClient(discord.Client):
         refreshThread.start()
         scheduleSeasonThread = Thread(target=scheduleSeason)
         scheduleSeasonThread.start()
+        print("Bot Started")
+
+    async def setup_hook(self) -> None:
+        pass
 
     async def on_message(self, message):
         if isinstance(message.channel, discord.channel.DMChannel):
@@ -114,12 +129,17 @@ class MyClient(discord.Client):
                 return
         if not message.content.startswith(config["command-prefix"]):
             return
-        commandArgs = message.content[1:].split(" ")
-        commandArgs[0] = commandArgs[0].lower()
-        print(commandArgs[0])
+        commandArgs = await getCommandArgs(message.content)
         if isinstance(message.channel, discord.channel.DMChannel):
             print("DM Command: " + message.content)
             connectDb()
+            if commandArgs[0] == "sync":
+                if DEBUG_GUILD_IDS is None or len(DEBUG_GUILD_IDS) == 0:
+                    print(await slashCommand.sync(guild=None))
+                else:
+                    for guild in DEBUG_GUILD_IDS:
+                        print(slashCommand.get_commands(guild=discord.Object(id=guild)))
+                        print(await slashCommand.sync(guild=discord.Object(id=guild)))
             if commandArgs[0] == "queue" or commandArgs[0] == "match" or commandArgs[0] == "***hunt***":
                 queueTime = 30
                 embed = discord.embeds.Embed()
@@ -312,7 +332,7 @@ class MyClient(discord.Client):
                 else:
                     embed = discord.embeds.Embed()
                     embed.title = "Current Season"
-                    embed.description = f"We are currently on Season {querySeason()}.\nNext season starts on <t:{int(getNextSeason() + (datetime.datetime.now() - datetime.datetime(1970,1,1)).total_seconds())}:F>"
+                    embed.description = f"We are currently on Season {querySeason()}.\nNext season starts on <t:{int(getNextSeason() + (datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds())}:F>"
                     await message.channel.send(embed=embed)
             if commandArgs[0] == "seasonhighs" or commandArgs[0] == "***sedgeheights***":
                 start = 1
@@ -340,7 +360,7 @@ class MyClient(discord.Client):
                         embed=embed)
                     return
                 leaderboardMessage = await message.channel.send(
-                    embed=await displayLeaderboard(start - 1, count))
+                    embed=await displaySeasonHighs(start - 1, count))
                 await reactWithPaginationEmojis(leaderboardMessage)
             if commandArgs[0] == "logs":
                 pass
@@ -476,7 +496,8 @@ class MyClient(discord.Client):
             tempTitle = embed.title
             tempTitle = tempTitle.replace("Leaderboard from Season ", "")
             season = int(tempTitle)
-            await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0, season=season), generateLeaderboardField, season=season)
+            await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0, season=season),
+                                     generateLeaderboardField, season=season)
         if embed.title == "Season High Leaderboard":
             await arrowEmojiReaction(embed, emoji, reaction, countLeaderboard(0), generateSeasonHighsField)
         if embed.title.startswith("Maps Found"):
@@ -504,4 +525,215 @@ def connectDb():
 
 
 client = MyClient()
+slashCommand = app_commands.CommandTree(client)
+
+
+# @slashCommand.command(name="maps",
+#                      description="Displays the map pool for the specified query. Can display a random map.",
+#                      guild=discord.Object(id=706545364249083906))
+async def mapsCommand(interaction: Interaction, query: str = "all", random: bool = False):
+    await interaction.response.defer()
+    page = 1
+    embed = await getMaps(query, random, page, 25, MAP_MODE_TAGS_OR_NAME)
+    try:
+        mapsEmbed = await interaction.followup.send(embed=embed)
+        if mapsEmbed.embeds[0].title.startswith("Maps Found"):
+            await reactWithPaginationEmojis(mapsEmbed)
+    except discord.errors.HTTPException:
+        await interaction.followup.send("Error: Map has an invalid media link")
+
+
+slashCommand.add_command(discord.app_commands.Command(name="maps",
+                                                      description="Displays the map pool for the specified query. Can display a random map.",
+                                                      callback=mapsCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def registerCommand(interaction: Interaction):
+    await interaction.response.defer()
+    await interaction.followup.send(embed=await register(interaction.user.id,
+                                                         interaction.user.name + "#" + str(
+                                                             interaction.user.discriminator)))
+
+
+slashCommand.add_command(discord.app_commands.Command(name="register",
+                                                      description="Register for ranked matches.",
+                                                      callback=registerCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def rankedCommand(interaction: Interaction):
+    await interaction.response.defer()
+    embed = discord.embeds.Embed()
+    embed.title = "Ranked Rules"
+    embed.description = config["ranked-text"]
+    embed.color = 0x20872c
+    await interaction.followup.send(embed=embed)
+
+
+slashCommand.add_command(discord.app_commands.Command(name="ranked",
+                                                      description="Shows ranked rules.",
+                                                      callback=rankedCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def statsCommand(interaction: Interaction):
+    await interaction.response.defer()
+    await interaction.followup.send(embed=await stats(interaction.user.id))
+
+
+slashCommand.add_command(discord.app_commands.Command(name="stats",
+                                                      description="View your stats including your mmr.",
+                                                      callback=statsCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def gameLimitCommand(interaction: Interaction):
+    await interaction.response.defer()
+    await interaction.followup.send(embed=await gameLimit("UNUSED", Interaction.user.id))
+
+
+slashCommand.add_command(discord.app_commands.Command(name="game-limit",
+                                                      description="View how many games you must play until you appear on the leaderboard.",
+                                                      callback=gameLimitCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def leaderboardCommand(interaction: Interaction, page: int = 1, count: int = 25):
+    await interaction.response.defer()
+    page = max(1, page)
+    count = min(max(1, count), 25)
+    leaderboardMessage = await interaction.followup.send(
+        embed=await displayLeaderboard(page - 1, count))
+    await reactWithPaginationEmojis(leaderboardMessage)
+
+
+slashCommand.add_command(discord.app_commands.Command(name="leaderboard",
+                                                      description="Displays the current leaderboard as a chat message.",
+                                                      callback=leaderboardCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def seasonHighsCommand(interaction: Interaction, page: int = 1, count: int = 25):
+    await interaction.response.defer()
+    page = max(1, page)
+    count = min(max(1, count), 25)
+    leaderboardMessage = await interaction.followup.send(
+        embed=await displaySeasonHighs(page - 1, count))
+    await reactWithPaginationEmojis(leaderboardMessage)
+
+
+slashCommand.add_command(discord.app_commands.Command(name="season-highs",
+                                                      description="Displays everyone's season high mmr as a leaderboard chat message.",
+                                                      callback=seasonHighsCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def mapTagsCommand(interaction: Interaction, page: int = 1):
+    await interaction.response.defer()
+    page = max(1, page)
+    count = 25
+    tagsEmbed = await interaction.followup.send(embed=await getMapTags(page, count))
+    await reactWithPaginationEmojis(tagsEmbed)
+
+
+slashCommand.add_command(discord.app_commands.Command(name="map-tags",
+                                                      description="Display all the available map tags to search for in the maps query.",
+                                                      callback=mapTagsCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def mapTagCommand(interaction: Interaction, tag: str = "all", random: bool = False):
+    await interaction.response.defer()
+    embed = await getMaps(tag, random, 1, 25, MAP_MODE_TAGS)
+    try:
+        mapsEmbed = await interaction.followup.send(embed=embed)
+        if mapsEmbed.embeds[0].title.startswith("Maps in Tag"):
+            await reactWithPaginationEmojis(mapsEmbed)
+    except discord.errors.HTTPException:
+        await interaction.followup.send("Error: Map has an invalid media link")
+
+
+slashCommand.add_command(discord.app_commands.Command(name="map-tag",
+                                                      description="Display all the available maps with a given tag. Can be random.",
+                                                      callback=mapTagCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def mapNameCommand(interaction: Interaction, name: str = "all"):
+    await interaction.response.defer()
+    embed = await getMaps(name, False, 1, 25, MAP_MODE_NAME)
+    try:
+        mapsEmbed = await interaction.followup.send(embed=embed)
+        if mapsEmbed.embeds[0].title.startswith("Maps with Name"):
+            await reactWithPaginationEmojis(mapsEmbed)
+    except discord.errors.HTTPException:
+        await interaction.followup.send("Error: Map has an invalid media link")
+
+
+slashCommand.add_command(discord.app_commands.Command(name="map-name",
+                                                      description="Display all the available maps with a given name.",
+                                                      callback=mapNameCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def iwinCommand(interaction: Interaction, name: discord.Member):
+    await interaction.response.defer()
+    await interaction.followup.send(
+        embed=await score_match(["", "<@" + str(name.id) + ">"], "<@" + str(interaction.user.id) + ">", 1, True, False))
+
+
+slashCommand.add_command(discord.app_commands.Command(name="i-win",
+                                                      description="Type /i-win @opponent#1234 if you won against your opponent in a ranked match.",
+                                                      callback=iwinCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def iloseCommand(interaction: Interaction, name: discord.Member):
+    await interaction.response.defer()
+    await interaction.followup.send(
+        embed=await score_match(["", "<@" + str(name.id) + ">"], "<@" + str(interaction.user.id) + ">", 2, True, False))
+
+
+slashCommand.add_command(discord.app_commands.Command(name="i-lose",
+                                                      description="Type /i-lose @opponent#1234 if you lost against your opponent in a ranked match.",
+                                                      callback=iloseCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def helpCommand(interaction: Interaction):
+    await interaction.response.defer()
+    embed = discord.embeds.Embed()
+    embed.title = "Help"
+    embed.description = config["help-text"]
+    embed.color = 0x20872c
+    await interaction.followup.send(embed=embed)
+
+
+slashCommand.add_command(discord.app_commands.Command(name="help",
+                                                      description="Shows a list of commands.",
+                                                      callback=helpCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
+
+async def seasonCommand(interaction: Interaction, season: int | None = None):
+    await interaction.response.defer()
+    start = 1
+    count = 25
+    if not (season is None):
+        leaderboardMessage = await interaction.followup.send(
+            embed=await displayLeaderboard(start - 1, count, season=season))
+        await reactWithPaginationEmojis(leaderboardMessage)
+    else:
+        embed = discord.embeds.Embed()
+        embed.title = "Current Season"
+        embed.description = f"We are currently on Season {querySeason()}.\nNext season starts on <t:{int(getNextSeason() + (datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds())}:F>"
+        await interaction.followup.send(embed=embed)
+
+
+slashCommand.add_command(discord.app_commands.Command(name="season",
+                                                      description="View the current season. Use /season <number> to see the leaderboard for that season.",
+                                                      callback=seasonCommand,
+                                                      guild_ids=DEBUG_GUILD_IDS))
+
 client.run(config["discord-bot-token"])

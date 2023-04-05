@@ -1,5 +1,4 @@
 import datetime
-import random
 
 import discord
 
@@ -168,7 +167,8 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode):
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name,
+                                                                        short_description=entry.short_description)
         count += 1
 
     embed = discord.embeds.Embed()
@@ -199,7 +199,8 @@ def getMapsField(tag, startIndex, mapsPerPage):
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name,
+                                                                        short_description=entry.short_description)
         count += 1
     return fieldValue
 
@@ -209,7 +210,8 @@ def getMapTagField(tag, startIndex, mapsPerPage):
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name,
+                                                                        short_description=entry.short_description)
         count += 1
     return fieldValue
 
@@ -219,7 +221,8 @@ def getMapNameField(tag, startIndex, mapsPerPage):
     fieldValue = ""
     count = startIndex + 1
     for entry in mapEntries:
-        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name, short_description=entry.short_description)
+        fieldValue += "`{count}` {name} - {short_description}\n".format(count=count, name=entry.name,
+                                                                        short_description=entry.short_description)
         count += 1
     return fieldValue
 
