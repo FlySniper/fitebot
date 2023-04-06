@@ -107,7 +107,7 @@ mmr-scales: # Tune how much players earn depending on their ranking. Remove this
       loser: 0.0
       emoji: ""
   - silver:
-      start: 50 # Win the proper amount of points if you're above 50 but below 200
+      start: 50 # Win the proper amount of points if you're above 50 but below 600
       winner: 0.0
       loser: 0.0
       emoji: ":shield:"

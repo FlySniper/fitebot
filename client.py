@@ -556,10 +556,12 @@ async def registerCommand(interaction: Interaction):
                                                              interaction.user.discriminator)))
 
 
-slashCommand.add_command(discord.app_commands.Command(name="register",
-                                                      description="Register for ranked matches.",
-                                                      callback=registerCommand,
-                                                      guild_ids=DEBUG_GUILD_IDS))
+command = discord.app_commands.Command(name="register",
+                                       description="Register for ranked matches.",
+                                       callback=registerCommand,
+                                       guild_ids=DEBUG_GUILD_IDS)
+command.guild_only = True
+slashCommand.add_command(command)
 
 
 async def rankedCommand(interaction: Interaction):
@@ -681,12 +683,16 @@ async def iwinCommand(interaction: Interaction, name: discord.Member):
     await interaction.response.defer()
     await interaction.followup.send(
         embed=await score_match(["", "<@" + str(name.id) + ">"], "<@" + str(interaction.user.id) + ">", 1, True, False))
+    if interaction.channel:
+        await interaction.channel.send("<@" + str(name.id) + ">")
 
 
-slashCommand.add_command(discord.app_commands.Command(name="i-win",
-                                                      description="Type /i-win @opponent#1234 if you won against your opponent in a ranked match.",
-                                                      callback=iwinCommand,
-                                                      guild_ids=DEBUG_GUILD_IDS))
+command = discord.app_commands.Command(name="i-win",
+                                       description="Type /i-win @opponent#1234 if you won against your opponent in a ranked match.",
+                                       callback=iwinCommand,
+                                       guild_ids=DEBUG_GUILD_IDS)
+command.guild_only = True
+slashCommand.add_command(command)
 
 
 async def iloseCommand(interaction: Interaction, name: discord.Member):
@@ -694,11 +700,16 @@ async def iloseCommand(interaction: Interaction, name: discord.Member):
     await interaction.followup.send(
         embed=await score_match(["", "<@" + str(name.id) + ">"], "<@" + str(interaction.user.id) + ">", 2, True, False))
 
+    if interaction.channel:
+        await interaction.channel.send("<@" + str(name.id) + ">")
 
-slashCommand.add_command(discord.app_commands.Command(name="i-lose",
-                                                      description="Type /i-lose @opponent#1234 if you lost against your opponent in a ranked match.",
-                                                      callback=iloseCommand,
-                                                      guild_ids=DEBUG_GUILD_IDS))
+
+command = discord.app_commands.Command(name="i-lose",
+                                       description="Type /i-lose @opponent#1234 if you lost against your opponent in a ranked match.",
+                                       callback=iloseCommand,
+                                       guild_ids=DEBUG_GUILD_IDS)
+command.guild_only = True
+slashCommand.add_command(command)
 
 
 async def helpCommand(interaction: Interaction):
