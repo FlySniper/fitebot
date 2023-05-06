@@ -22,7 +22,7 @@ async def displayLeaderboard(start, count, season=0):
 
 
 def generateLeaderboardField(start, count, season=0):
-    entries = queryLeaderboard(start, count, config["game-limit-count"], season=season)
+    entries = queryLeaderboard(start, count, config["placement-count"], season=season)
     index = 0
     fieldValue = ""
     for entry in entries:
@@ -48,7 +48,7 @@ async def displaySeasonHighs(start, count):
 
 
 def generateSeasonHighsField(start, count):
-    entries = querySeasonHighLeaderboard(start, count, config["game-limit-count"])
+    entries = querySeasonHighLeaderboard(start, count, config["placement-count"])
     index = 0
     fieldValue = ""
     for entry in entries:
