@@ -15,7 +15,7 @@ from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSess
     getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
     EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE, MAP_MODE_TAGS_OR_NAME, MAP_MODE_NAME, MAP_MODE_TAGS, \
     getMapTagField, getMapNameField, EDIT_SHORT_DESCRIPTION
-from commands.mmr_commands import score_match, register, stats, gameLimit, decay
+from commands.mmr_commands import score_match, register, stats, placements, decay
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
 from controller.seasons import scheduleSeason, getNextSeason
@@ -133,7 +133,7 @@ class MyClient(discord.Client):
         if isinstance(message.channel, discord.channel.DMChannel):
             print("DM Command: " + message.content)
             connectDb()
-            if commandArgs[0] == "sync":
+            if commandArgs[0] == "sync" and is_owner():
                 if DEBUG_GUILD_IDS is None or len(DEBUG_GUILD_IDS) == 0:
                     print(await slashCommand.sync(guild=None))
                 else:
@@ -266,8 +266,8 @@ class MyClient(discord.Client):
                 await message.channel.send(embed=await stats(message.author.id))
             if commandArgs[0] == "decay" or commandArgs[0] == "***rot***":
                 await message.channel.send(embed=await decay(commandArgs, message.author.id))
-            if commandArgs[0] == "gamelimit" or commandArgs[0] == "***sedgegames***":
-                await message.channel.send(embed=await gameLimit(commandArgs, message.author.id))
+            if commandArgs[0] == "placements" or commandArgs[0] == "***sedgegames***":
+                await message.channel.send(embed=await placements(commandArgs, message.author.id))
             if commandArgs[0] == "register" or commandArgs[0] == "***sedgehungers***":
                 await message.channel.send(embed=await register(message.author.id,
                                                                 message.author.name + "#" + str(
@@ -590,14 +590,14 @@ slashCommand.add_command(discord.app_commands.Command(name="stats",
                                                       guild_ids=DEBUG_GUILD_IDS))
 
 
-async def gameLimitCommand(interaction: Interaction):
+async def placementsCommand(interaction: Interaction):
     await interaction.response.defer()
-    await interaction.followup.send(embed=await gameLimit("UNUSED", Interaction.user.id))
+    await interaction.followup.send(embed=await placements("UNUSED", interaction.user.id))
 
 
-slashCommand.add_command(discord.app_commands.Command(name="game-limit",
+slashCommand.add_command(discord.app_commands.Command(name="placements",
                                                       description="View how many games you must play until you appear on the leaderboard.",
-                                                      callback=gameLimitCommand,
+                                                      callback=placementsCommand,
                                                       guild_ids=DEBUG_GUILD_IDS))
 
 

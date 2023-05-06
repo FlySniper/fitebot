@@ -125,7 +125,7 @@ mmr-points-bet: 32 # The maximum amount of mmr of both players combined on the l
 mmr-power: 10 # The to the power of variable in the elo formula
 mmr-elo-divide: 400 # The amount to dive the elo by before raising it to the power
 
-game-limit-count: 10 # Number of games you must play every season before you appear on the leaderboard
+placement-count: 10 # Number of games you must play every season before you appear on the leaderboard
 
 
 season-every: 4 # The period of time before we increment the season number in months (1, 2, etc.)
@@ -146,7 +146,7 @@ help-text: "Fitebot uses a custom MMR ranking system, adjusting your rank relati
 
             !stats: View your stats including your mmr\n
 
-            !gamelimit: View how many games you must play until you appear on the leaderboard\n
+            !placements: View how many games you must play until you appear on the leaderboard\n
 
             !leaderboard <page>: Displays the current leaderboard as a chat message\n
 

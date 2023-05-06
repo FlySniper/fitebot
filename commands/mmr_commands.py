@@ -15,10 +15,10 @@ async def stats(user):
         return embed
     description = "MMR: {:.2f}\nGames this Decay: {:d}/{:d}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nGames Total: {:d}\nVictories Total: {:d}\nSeason High MMR: {:.2f}".format(
         player.elo, player.gamesThisDecay, config["mmr-decay-games"], player.gamesThisSeason,
-        config["game-limit-count"], player.gamesThisSeasonWon, player.gamesTotal, player.gamesTotalWon, player.seasonHigh)
+        config["placement-count"], player.gamesThisSeasonWon, player.gamesTotal, player.gamesTotalWon, player.seasonHigh)
     if config["mmr-decay-every"].lower() == "never":
         description = "MMR: {:.2f}\nGames this Season: {:d}/{:d} Game Limit\nVictories this Season: {:d}\nGames Total: {:d}\nVictories Total: {:d}\nSeason High MMR: {:.2f}".format(
-            player.elo, player.gamesThisSeason, config["game-limit-count"], player.gamesThisSeasonWon,
+            player.elo, player.gamesThisSeason, config["placement-count"], player.gamesThisSeasonWon,
             player.gamesTotal, player.gamesTotalWon, player.seasonHigh)
     embed = discord.embeds.Embed()
     embed.title = "Your Statistics"
@@ -111,9 +111,9 @@ async def score_match(args, user1, victory, updateStats, forceWin):
         return embed
 
 
-async def gameLimit(args, user):
+async def placements(args, user):
     entry = LeaderboardEntry(user)
-    gameLimitCount = config["game-limit-count"]
+    placement_count = config["placement-count"]
     if entry.id == 0:
         embed = discord.embeds.Embed()
         embed.title = "Games Left"
@@ -124,9 +124,9 @@ async def gameLimit(args, user):
         embed = discord.embeds.Embed()
         embed.title = "Games Left"
         embed.color = 0x20872c
-        if gameLimitCount > entry.gamesThisSeason:
+        if placement_count > entry.gamesThisSeason:
             embed.description = "You have to play {:d} more games to appear on the leaderboard".format(
-                config["game-limit-count"] - entry.gamesThisSeason)
+                config["placement-count"] - entry.gamesThisSeason)
         else:
             embed.description = "You have reached your game limit for this season and now appear on the leaderboard"
         return embed
