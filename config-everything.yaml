@@ -38,6 +38,7 @@ matchmaking: # List of possible queues for people to join
     uses-matchmaking: true
     matchmaking-band: 10000 # Match players only within a certain skill level
     uses-bans: false # Use the bans system
+    suggested-text: true # When a random map is chosen, make it clear that the map is a suggestion and can be changed.
     post-notification: true # Post a notification in the channel when someone queues
     notification-text: "Someone is looking for a **ranked** game!\nDM <@934827534510616576> with `!queue ranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
 
@@ -52,6 +53,7 @@ matchmaking: # List of possible queues for people to join
     uses-matchmaking: false
     matchmaking-band: 10000
     uses-bans: false
+    suggested-text: true # When a random map is chosen, make it clear that the map is a suggestion and can be changed.
     post-notification: true
     notification-text: "Someone is looking for a **1v1** game!\nDM <@934827534510616576> with `!queue 1v1` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
 
@@ -66,6 +68,7 @@ matchmaking: # List of possible queues for people to join
     uses-matchmaking: false
     matchmaking-band: 10000
     uses-bans: false
+    suggested-text: true # When a random map is chosen, make it clear that the map is a suggestion and can be changed.
     post-notification: true
     notification-text: "Someone is looking for a **2v2** game!\nDM <@934827534510616576> with `!queue 2v2` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
 
@@ -80,6 +83,7 @@ matchmaking: # List of possible queues for people to join
     uses-matchmaking: false
     matchmaking-band: 10000
     uses-bans: false
+    suggested-text: true # When a random map is chosen, make it clear that the map is a suggestion and can be changed.
     post-notification: true
     notification-text: "Someone is looking for a **Free for All** game!\nDM <@934827534510616576> with `!queue ffa` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
 
@@ -94,6 +98,7 @@ matchmaking: # List of possible queues for people to join
     uses-matchmaking: true
     matchmaking-band: 10000
     uses-bans: false
+    suggested-text: true # When a random map is chosen, make it clear that the map is a suggestion and can be changed.
     post-notification: true
     notification-text: "Someone is looking for an **async** game!\nDM <@934827534510616576> with `!queue asyncranked` to enter the queue.\nThis person will leave the queue at <t:queueTime>"
 

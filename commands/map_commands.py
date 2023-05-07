@@ -107,7 +107,7 @@ class MapAddSession:
 mapAddSessions = {}
 
 
-async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode):
+async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode, suggested=False):
     startIndex = (pageNum - 1) * mapsPerPage
     if mode == MAP_MODE_TAGS_OR_NAME:
         mapEntries = queryMapsByTagOrName(tag, startIndex, mapsPerPage)
@@ -138,7 +138,10 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode):
             embed.description = errorMessage
             return embed
         embed = discord.embeds.Embed()
-        embed.title = "Your Random Map: {name}".format(name=entry.name)
+        if suggested:
+            embed.title = "Suggested Map: {name}".format(name=entry.name)
+        else:
+            embed.title = "Your Random Map: {name}".format(name=entry.name)
         embed.description = "{description}\nAuthor: {author}".format(description=entry.description, author=entry.author)
         embed.set_image(url=entry.link)
         embed.color = 0x20872c

@@ -126,7 +126,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
             if queueConfig["uses-bans"]:
                 finalText += "\nBans Underway"
                 # TODO Implement Bans
-            mapEmbed = await getMaps(queueConfig["maptags"], True, 1, 1, MAP_MODE_TAGS)
+            mapEmbed = await getMaps(queueConfig["maptags"], True, 1, 1, MAP_MODE_TAGS, queueConfig["suggested-text"])
             embed = discord.embeds.Embed()
             embed.title = "Queue"
             embed.color = 0x20872c
