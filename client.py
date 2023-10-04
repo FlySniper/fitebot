@@ -201,7 +201,7 @@ class MyClient(discord.Client):
             if commandArgs[0] == "tags" or commandArgs[0] == "maptags" or commandArgs[0] == "groups" or commandArgs[
                 0] == "mapgroups" or commandArgs[0] == "***floranclassifications***":
                 start = 0
-                count = 25
+                count = 20
                 embed = discord.embeds.Embed()
                 embed.title = "Tags Error"
                 embed.description = "Error: Please enter a valid number for the tag page"
@@ -225,12 +225,12 @@ class MyClient(discord.Client):
                         group = " ".join(commandArgs[1:len(commandArgs) - 1])
                     else:
                         group = " ".join(commandArgs[1:])
-                embed = await getMaps(group, isRandom, page, 25, MAP_MODE_TAGS_OR_NAME)
+                embed = await getMaps(group, isRandom, page, 20, MAP_MODE_TAGS_OR_NAME)
                 try:
                     mapsEmbed = await message.channel.send(embed=embed)
                     if mapsEmbed.embeds[0].title.startswith("Maps Found"):
                         await reactWithPaginationEmojis(mapsEmbed)
-                except discord.errors.HTTPException:
+                except discord.errors.HTTPException as ex:
                     await message.channel.send("Error: Map has an invalid media link")
             if commandArgs[0] == "maptag" or commandArgs[0] == "***gloomtags***":
                 isRandom = False
@@ -243,7 +243,7 @@ class MyClient(discord.Client):
                         group = " ".join(commandArgs[1:len(commandArgs) - 1])
                     else:
                         group = " ".join(commandArgs[1:])
-                embed = await getMaps(group, isRandom, page, 25, MAP_MODE_TAGS)
+                embed = await getMaps(group, isRandom, page, 20, MAP_MODE_TAGS)
                 try:
                     mapsEmbed = await message.channel.send(embed=embed)
                     if mapsEmbed.embeds[0].title.startswith("Maps in Tag"):
@@ -255,7 +255,7 @@ class MyClient(discord.Client):
                 group = "all"
                 if len(commandArgs) > 1:
                     group = " ".join(commandArgs[1:])
-                embed = await getMaps(group, False, page, 25, MAP_MODE_NAME)
+                embed = await getMaps(group, False, page, 20, MAP_MODE_NAME)
                 try:
                     mapsEmbed = await message.channel.send(embed=embed)
                     if mapsEmbed.embeds[0].title.startswith("Maps with Name"):
@@ -281,7 +281,7 @@ class MyClient(discord.Client):
                     embed=await score_match(commandArgs, "<@" + str(message.author.id) + ">", 2, True, False))
             if commandArgs[0] == "leaderboard" or commandArgs[0] == "***sedgestanding***":
                 start = 1
-                count = 25
+                count = 20
                 embed = discord.embeds.Embed()
                 embed.title = "Leaderboard Error"
                 embed.description = "Error: Please enter one or two valid numbers for the leaderboard range"
@@ -295,7 +295,7 @@ class MyClient(discord.Client):
                 elif len(commandArgs) == 3:
                     try:
                         start = int(commandArgs[1])
-                        count = min(int(commandArgs[2]), 25)
+                        count = min(int(commandArgs[2]), 20)
                     except ValueError:
                         await message.channel.send(
                             embed=embed)
@@ -309,7 +309,7 @@ class MyClient(discord.Client):
                 await reactWithPaginationEmojis(leaderboardMessage)
             if commandArgs[0] == "season" or commandArgs[0] == "***sedgehistory***":
                 start = 1
-                count = 25
+                count = 20
                 season = 0
                 embed = discord.embeds.Embed()
                 embed.title = "Leaderboard Error"
@@ -336,7 +336,7 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=embed)
             if commandArgs[0] == "seasonhighs" or commandArgs[0] == "***sedgeheights***":
                 start = 1
-                count = 25
+                count = 20
                 embed = discord.embeds.Embed()
                 embed.title = "Leaderboard Error"
                 embed.description = "Error: Please enter one or two valid numbers for the leaderboard range"
@@ -350,7 +350,7 @@ class MyClient(discord.Client):
                 elif len(commandArgs) == 3:
                     try:
                         start = int(commandArgs[1])
-                        count = min(int(commandArgs[2]), 25)
+                        count = min(int(commandArgs[2]), 20)
                     except ValueError:
                         await message.channel.send(
                             embed=embed)
@@ -534,7 +534,7 @@ slashCommand = app_commands.CommandTree(client)
 async def mapsCommand(interaction: Interaction, query: str = "all", random: bool = False):
     await interaction.response.defer()
     page = 1
-    embed = await getMaps(query, random, page, 25, MAP_MODE_TAGS_OR_NAME)
+    embed = await getMaps(query, random, page, 20, MAP_MODE_TAGS_OR_NAME)
     try:
         mapsEmbed = await interaction.followup.send(embed=embed)
         if mapsEmbed.embeds[0].title.startswith("Maps Found"):
@@ -601,10 +601,10 @@ slashCommand.add_command(discord.app_commands.Command(name="placements",
                                                       guild_ids=DEBUG_GUILD_IDS))
 
 
-async def leaderboardCommand(interaction: Interaction, page: int = 1, count: int = 25):
+async def leaderboardCommand(interaction: Interaction, page: int = 1, count: int = 20):
     await interaction.response.defer()
     page = max(1, page)
-    count = min(max(1, count), 25)
+    count = min(max(1, count), 20)
     leaderboardMessage = await interaction.followup.send(
         embed=await displayLeaderboard(page - 1, count))
     await reactWithPaginationEmojis(leaderboardMessage)
@@ -616,10 +616,10 @@ slashCommand.add_command(discord.app_commands.Command(name="leaderboard",
                                                       guild_ids=DEBUG_GUILD_IDS))
 
 
-async def seasonHighsCommand(interaction: Interaction, page: int = 1, count: int = 25):
+async def seasonHighsCommand(interaction: Interaction, page: int = 1, count: int = 20):
     await interaction.response.defer()
     page = max(1, page)
-    count = min(max(1, count), 25)
+    count = min(max(1, count), 20)
     leaderboardMessage = await interaction.followup.send(
         embed=await displaySeasonHighs(page - 1, count))
     await reactWithPaginationEmojis(leaderboardMessage)
@@ -634,7 +634,7 @@ slashCommand.add_command(discord.app_commands.Command(name="season-highs",
 async def mapTagsCommand(interaction: Interaction, page: int = 1):
     await interaction.response.defer()
     page = max(1, page)
-    count = 25
+    count = 20
     tagsEmbed = await interaction.followup.send(embed=await getMapTags(page, count))
     await reactWithPaginationEmojis(tagsEmbed)
 
@@ -647,7 +647,7 @@ slashCommand.add_command(discord.app_commands.Command(name="map-tags",
 
 async def mapTagCommand(interaction: Interaction, tag: str = "all", random: bool = False):
     await interaction.response.defer()
-    embed = await getMaps(tag, random, 1, 25, MAP_MODE_TAGS)
+    embed = await getMaps(tag, random, 1, 20, MAP_MODE_TAGS)
     try:
         mapsEmbed = await interaction.followup.send(embed=embed)
         if mapsEmbed.embeds[0].title.startswith("Maps in Tag"):
@@ -664,7 +664,7 @@ slashCommand.add_command(discord.app_commands.Command(name="map-tag",
 
 async def mapNameCommand(interaction: Interaction, name: str = "all"):
     await interaction.response.defer()
-    embed = await getMaps(name, False, 1, 25, MAP_MODE_NAME)
+    embed = await getMaps(name, False, 1, 20, MAP_MODE_NAME)
     try:
         mapsEmbed = await interaction.followup.send(embed=embed)
         if mapsEmbed.embeds[0].title.startswith("Maps with Name"):
@@ -730,7 +730,7 @@ slashCommand.add_command(discord.app_commands.Command(name="help",
 async def seasonCommand(interaction: Interaction, season: int | None = None):
     await interaction.response.defer()
     start = 1
-    count = 25
+    count = 20
     if not (season is None):
         leaderboardMessage = await interaction.followup.send(
             embed=await displayLeaderboard(start - 1, count, season=season))
