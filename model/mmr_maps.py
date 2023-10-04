@@ -117,13 +117,14 @@ def queryMapsByRandomTag(tag):
 def countMaps(tag):
     if tag == "all":
         results = dbQuery("SELECT COUNT(*) FROM mmr_maps ORDER BY name", ())
+        if results is None or len(results) == 0:
+            return 0
+        return results[0][0]
     else:
         results = dbQuery(
             "SELECT COUNT(*) FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name)",
             (tag, "%" + tag + "%"))
-    if results is None or len(results) == 0:
-        return 0
-    return results[0][0]
+        return len(results)
 
 
 def countTags():
