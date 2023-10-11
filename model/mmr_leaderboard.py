@@ -20,14 +20,13 @@ def queryLeaderboard(start, count, gameLimit, season=0):
         entry = LeaderboardEntry(None)
         entry.id = result[0]
         entry.elo = result[1]
-        entry.discordTag = result[2]
-        entry.isBanned = result[3]
-        entry.gamesThisDecay = result[4]
-        entry.gamesThisSeason = result[5]
-        entry.gamesThisSeasonWon = result[6]
-        entry.seasonHigh = result[7]
-        entry.gamesTotal = result[8]
-        entry.gamesTotalWon = result[9]
+        entry.isBanned = result[2]
+        entry.gamesThisDecay = result[3]
+        entry.gamesThisSeason = result[4]
+        entry.gamesThisSeasonWon = result[5]
+        entry.seasonHigh = result[6]
+        entry.gamesTotal = result[7]
+        entry.gamesTotalWon = result[8]
         entries.append(entry)
     return entries
 
@@ -43,14 +42,13 @@ def querySeasonHighLeaderboard(start, count, gameLimit):
         entry = LeaderboardEntry(None)
         entry.id = result[0]
         entry.elo = result[1]
-        entry.discordTag = result[2]
-        entry.isBanned = result[3]
-        entry.gamesThisDecay = result[4]
-        entry.gamesThisSeason = result[5]
-        entry.gamesThisSeasonWon = result[6]
-        entry.seasonHigh = result[7]
-        entry.gamesTotal = result[8]
-        entry.gamesTotalWon = result[9]
+        entry.isBanned = result[2]
+        entry.gamesThisDecay = result[3]
+        entry.gamesThisSeason = result[4]
+        entry.gamesThisSeasonWon = result[5]
+        entry.seasonHigh = result[6]
+        entry.gamesTotal = result[7]
+        entry.gamesTotalWon = result[8]
         entries.append(entry)
     return entries
 
@@ -74,7 +72,6 @@ def countLeaderboard(gameLimit, season=0):
 class LeaderboardEntry:
     id = 0
     elo = 0
-    discordTag = "Person#1234"
     isBanned = False
     gamesThisDecay = 0
     gamesThisSeason = 0
@@ -98,26 +95,25 @@ class LeaderboardEntry:
             return None
         self.id = result[0][0]
         self.elo = result[0][1]
-        self.discordTag = result[0][2]
-        self.isBanned = result[0][3]
-        self.gamesThisDecay = result[0][4]
-        self.gamesThisSeason = result[0][5]
-        self.gamesThisSeasonWon = result[0][6]
-        self.seasonHigh = result[0][7]
-        self.gamesTotal = result[0][8]
-        self.gamesTotalWon = result[0][9]
+        self.isBanned = result[0][2]
+        self.gamesThisDecay = result[0][3]
+        self.gamesThisSeason = result[0][4]
+        self.gamesThisSeasonWon = result[0][5]
+        self.seasonHigh = result[0][6]
+        self.gamesTotal = result[0][7]
+        self.gamesTotalWon = result[0][8]
 
     def insertUser(self):
         dbQuery(
-            "INSERT INTO mmr_leaderboard (id, elo, discordTag, isBanned, gamesThisDecay, gamesThisSeason, gamesThisSeasonWon, seasonHigh, gamesTotal, gamesTotalWon) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (self.id, self.elo, self.discordTag, self.isBanned, self.gamesThisDecay, self.gamesThisSeason,
+            "INSERT INTO mmr_leaderboard (id, elo, isBanned, gamesThisDecay, gamesThisSeason, gamesThisSeasonWon, seasonHigh, gamesTotal, gamesTotalWon) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (self.id, self.elo, self.isBanned, self.gamesThisDecay, self.gamesThisSeason,
              self.gamesThisSeasonWon, self.seasonHigh, self.gamesTotal, self.gamesTotalWon))
 
     def updateUser(self):
         update_query = """
-        UPDATE mmr_leaderboard SET elo = %s, discordTag = %s, isBanned = %s, gamesThisDecay = %s, gamesThisSeason = %s, gamesThisSeasonWon = %s, seasonHigh = %s, gamesTotal = %s, gamesTotalWon = %s WHERE id = %s
+        UPDATE mmr_leaderboard SET elo = %s, isBanned = %s, gamesThisDecay = %s, gamesThisSeason = %s, gamesThisSeasonWon = %s, seasonHigh = %s, gamesTotal = %s, gamesTotalWon = %s WHERE id = %s
         """
-        dbQuery(update_query, (self.elo, self.discordTag,
+        dbQuery(update_query, (self.elo,
                                self.isBanned, self.gamesThisDecay, self.gamesThisSeason,
                                self.gamesThisSeasonWon, self.seasonHigh, self.gamesTotal, self.gamesTotalWon, self.id),
                 True, False)

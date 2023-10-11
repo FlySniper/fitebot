@@ -27,12 +27,11 @@ async def stats(user):
     return embed
 
 
-async def register(user, tag):
+async def register(user):
     player = LeaderboardEntry(user)
     if player.id == 0:
         player.id = user
         player.elo = config["mmr-start-value"]
-        player.discordTag = tag
         player.isBanned = False
         player.gamesThisDecay = 0
         player.gamesThisSeason = 0

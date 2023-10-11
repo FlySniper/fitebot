@@ -27,7 +27,7 @@ def generateLeaderboardField(start, count, season=0):
     fieldValue = ""
     for entry in entries:
         emoji = getEmoji(entry.elo)
-        fieldValue += "`{:d}`{:s}{:.128s} - - - ({:.2f})\n".format(start + 1 + index, emoji, entry.discordTag,
+        fieldValue += "`{:d}`{:s}<@!{:d}> - - - ({:.2f})\n".format(start + 1 + index, emoji, entry.id,
                                                                    entry.elo)
         index += 1
     return fieldValue
@@ -53,8 +53,8 @@ def generateSeasonHighsField(start, count):
     fieldValue = ""
     for entry in entries:
         emoji = getEmoji(entry.elo)
-        fieldValue += "`{:d}`{:s}{:.128s} - - - ({:.2f})\n".format(start + 1 + index, emoji, entry.discordTag,
-                                                                   entry.elo)
+        fieldValue += "`{:d}`{:s}<@!{:d}> - - - ({:.2f})\n".format(start + 1 + index, emoji, entry.id,
+                                                                   entry.seasonHigh)
         index += 1
     return fieldValue
 

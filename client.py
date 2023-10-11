@@ -269,9 +269,7 @@ class MyClient(discord.Client):
             if commandArgs[0] == "placements" or commandArgs[0] == "***sedgegames***":
                 await message.channel.send(embed=await placements(commandArgs, message.author.id))
             if commandArgs[0] == "register" or commandArgs[0] == "***sedgehungers***":
-                await message.channel.send(embed=await register(message.author.id,
-                                                                message.author.name + "#" + str(
-                                                                    message.author.discriminator)))
+                await message.channel.send(embed=await register(message.author.id))
             if commandArgs[0] == "iwin" or commandArgs[0] == "iwon" or commandArgs[0] == "***sedgewins***":
                 await message.channel.send(
                     embed=await score_match(commandArgs, "<@" + str(message.author.id) + ">", 1, True, False))
@@ -551,9 +549,7 @@ slashCommand.add_command(discord.app_commands.Command(name="maps",
 
 async def registerCommand(interaction: Interaction):
     await interaction.response.defer()
-    await interaction.followup.send(embed=await register(interaction.user.id,
-                                                         interaction.user.name + "#" + str(
-                                                             interaction.user.discriminator)))
+    await interaction.followup.send(embed=await register(interaction.user.id))
 
 
 command = discord.app_commands.Command(name="register",
