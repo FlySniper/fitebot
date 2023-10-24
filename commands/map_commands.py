@@ -257,60 +257,19 @@ async def delMap(name):
     return embed
 
 
-async def startMapAddSession(author):
-    discordId = author.id
-    if discordId in mapAddSessions.keys():
-        mapAddSession = mapAddSessions[discordId]
-        if not mapAddSession.isExpired():
-            embed = discord.embeds.Embed()
-            embed.title = "Map Add Error"
-            embed.description = "Error: User is already adding/editing a map, please finish adding the map"
-            return embed
-    mapAddSessions[discordId] = MapAddSession(discordId)
+async def mapAdd():
     embed = discord.embeds.Embed()
     embed.title = "Map Add"
-    embed.description = "Map Add session started, please check your DMs"
+    embed.description = "Please click the button to add a map."
     embed.color = 0x20872c
-    dmChannel = await author.create_dm()
-    await dmChannel.send("Please enter the map name:")
     return embed
 
 
-async def startMapEditSession(author, mapName, editType):
-    discordId = author.id
-    if discordId in mapAddSessions.keys():
-        mapAddSession = mapAddSessions[discordId]
-        if not mapAddSession.isExpired():
-            embed = discord.embeds.Embed()
-            embed.title = "Map Edit Error"
-            embed.description = "Error: User is already adding/editing a map, please finish adding the map"
-            return embed
-    session = MapAddSession(discordId)
-    if not session.setEditMode(mapName, editType):
-        embed = discord.embeds.Embed()
-        embed.title = "Map Edit Error"
-        embed.description = "Error: Map query does not resolve to exactly one map"
-        return embed
-    mapAddSessions[discordId] = session
+async def startMapEditSession(mapName):
     embed = discord.embeds.Embed()
     embed.title = "Map Edit"
-    embed.description = "Map Edit session started, please check your DMs"
+    embed.description = f"Map Edit session started for {mapName}."
     embed.color = 0x20872c
-    dmChannel = await author.create_dm()
-    if editType == EDIT_NAME:
-        await dmChannel.send("Please enter the new map name:")
-    elif editType == EDIT_AUTHOR:
-        await dmChannel.send("Please enter the new map author:")
-    elif editType == EDIT_LINK:
-        await dmChannel.send("Please enter the new map media link:")
-    elif editType == EDIT_WEBSITE:
-        await dmChannel.send("Please enter the new map website:")
-    elif editType == EDIT_DESCRIPTION:
-        await dmChannel.send("Please enter the new map description:")
-    elif editType == EDIT_SHORT_DESCRIPTION:
-        await dmChannel.send("Please enter the new map short description:")
-    elif editType == EDIT_TAGS:
-        await dmChannel.send("Please enter the new tags for the map, separated by a comma without spaces:")
     return embed
 
 

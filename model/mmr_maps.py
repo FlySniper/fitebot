@@ -11,6 +11,17 @@ def queryTags(start, end):
     return resultsList
 
 
+def queryTagsByMapName(name):
+    results = dbQuery("SELECT mapTag FROM mmr_maps_tags WHERE mapName = %s GROUP BY(mapTag)",
+                      (name,))
+    resultsList = []
+    if results is None or len(results) == 0:
+        return []
+    for result in results:
+        resultsList.append(result[0])
+    return resultsList
+
+
 def queryMapsByTagOrName(tag, start, count):
     if tag.lower() == "all":
         results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
@@ -36,7 +47,7 @@ def create_map_entry(result):
     entry.description = result[4]
     entry.short_description = result[5]
     if len(result) >= 7:
-        entry.tags = result[6]
+        entry.tags = ",".join(queryTagsByMapName(entry.name))
     return entry
 
 
@@ -174,7 +185,8 @@ class MapEntry:
         self.description = newDescription
 
     def updateMapShortDescription(self, new_short_description):
-        dbQuery("UPDATE mmr_maps SET short_description = %s WHERE name = %s", (new_short_description, self.name), True, False)
+        dbQuery("UPDATE mmr_maps SET short_description = %s WHERE name = %s", (new_short_description, self.name), True,
+                False)
         self.short_description = new_short_description
 
     def updateMapTags(self, newTags):
@@ -183,6 +195,14 @@ class MapEntry:
             dbQuery(
                 "INSERT INTO mmr_maps_tags (mapName, mapTag) VALUES (%s, %s)",
                 (self.name, tag), True, False)
+
+    def updateMap(self, oldName):
+        dbQuery(
+            "UPDATE mmr_maps SET name = %s, author = %s, link = %s, website = %s, description = %s, short_description = %s WHERE name = %s",
+            (self.name, self.author, self.link, self.website, self.description, self.short_description, oldName), True,
+            False)
+        dbQuery("UPDATE mmr_maps_tags SET mapName = %s WHERE mapName = %s", (self.name, oldName), True, False)
+        self.updateMapTags(self.tags)
 
     def deleteMap(self):
         dbQuery("DELETE FROM mmr_maps WHERE name = %s", (self.name,), True, False)

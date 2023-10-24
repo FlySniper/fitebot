@@ -11,7 +11,7 @@ import mysql
 from commands.admin_commands import setElo, setBan
 from commands.leaderboard_commands import displayLeaderboard, generateLeaderboardField, generateSeasonHighsField, \
     displaySeasonHighs
-from commands.map_commands import getMaps, getMapsField, delMap, startMapAddSession, isInMapAddSession, \
+from commands.map_commands import getMaps, getMapsField, delMap, mapAdd, isInMapAddSession, \
     getMapAddSession, removeMapAddSession, getMapTags, getTagsField, startMapEditSession, EDIT_NAME, EDIT_AUTHOR, \
     EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE, MAP_MODE_TAGS_OR_NAME, MAP_MODE_NAME, MAP_MODE_TAGS, \
     getMapTagField, getMapNameField, EDIT_SHORT_DESCRIPTION
@@ -24,6 +24,7 @@ from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
 from model.mmr_maps import countMaps, countTags
 from model.mmr_season import querySeason
+from views.map_views import MapViewAdd, MapViewEdit
 
 prefix = config["command-prefix"]
 DEBUG_GUILD_IDS = None  # [706545364249083906]
@@ -367,7 +368,7 @@ class MyClient(discord.Client):
         if message.channel.id in config["admin-channels"]:
             connectDb()
             if commandArgs[0] == "addmap":
-                await message.channel.send(embed=await startMapAddSession(message.author))
+                await message.channel.send(embed=await mapAdd(), view=MapViewAdd())
             if commandArgs[0] == "deletemap":
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()
@@ -377,69 +378,15 @@ class MyClient(discord.Client):
                     return
                 name = " ".join(commandArgs[1:])
                 await message.channel.send(embed=await delMap(name))
-            if commandArgs[0] == "editmapname":
+            if commandArgs[0] == "editmap":
                 if len(commandArgs) == 1:
                     embed = discord.embeds.Embed()
                     embed.title = "Edit Map Error"
-                    embed.description = "Error: Please enter a map query as an argument"
+                    embed.description = "Error: Please enter a map name as an argument"
                     await message.channel.send(embed=embed)
                     return
                 arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_NAME))
-            if commandArgs[0] == "editmapauthor":
-                if len(commandArgs) == 1:
-                    embed = discord.embeds.Embed()
-                    embed.title = "Edit Map Error"
-                    embed.description = "Error: Please enter a map query as an argument"
-                    await message.channel.send(embed=embed)
-                    return
-                arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_AUTHOR))
-            if commandArgs[0] == "editmaplink":
-                if len(commandArgs) == 1:
-                    embed = discord.embeds.Embed()
-                    embed.title = "Edit Map Error"
-                    embed.description = "Error: Please enter a map query as an argument"
-                    await message.channel.send(embed=embed)
-                    return
-                arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_LINK))
-            if commandArgs[0] == "editmapwebsite" and config["enable-website-linking"]:
-                if len(commandArgs) == 1:
-                    embed = discord.embeds.Embed()
-                    embed.title = "Edit Map Error"
-                    embed.description = "Error: Please enter a map query as an argument"
-                    await message.channel.send(embed=embed)
-                    return
-                arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_WEBSITE))
-            if commandArgs[0] == "editmapdescription":
-                if len(commandArgs) == 1:
-                    embed = discord.embeds.Embed()
-                    embed.title = "Edit Map Error"
-                    embed.description = "Error: Please enter a map query as an argument"
-                    await message.channel.send(embed=embed)
-                    return
-                arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_DESCRIPTION))
-            if commandArgs[0] == "editmapshortdescription":
-                if len(commandArgs) == 1:
-                    embed = discord.embeds.Embed()
-                    embed.title = "Edit Map Error"
-                    embed.description = "Error: Please enter a map query as an argument"
-                    await message.channel.send(embed=embed)
-                    return
-                arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_SHORT_DESCRIPTION))
-            if commandArgs[0] == "editmaptags":
-                if len(commandArgs) == 1:
-                    embed = discord.embeds.Embed()
-                    embed.title = "Edit Map Error"
-                    embed.description = "Error: Please enter a map query as an argument"
-                    await message.channel.send(embed=embed)
-                    return
-                arg = " ".join(commandArgs[1:])
-                await message.channel.send(embed=await startMapEditSession(message.author, arg, EDIT_TAGS))
+                await message.channel.send(embed=await startMapEditSession(arg), view=MapViewEdit(arg))
             if commandArgs[0] == "ban":
                 if len(commandArgs) == 2:
                     embed = discord.embeds.Embed()
