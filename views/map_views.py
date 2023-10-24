@@ -63,7 +63,7 @@ class MapForm1(ui.Modal):
     webLink = ui.TextInput(label="Map Web Link", max_length=256, required=False)
     # description = ui.TextInput(label="Map Description", style=discord.TextStyle.paragraph, max_length=256)
     # shortDescription = ui.TextInput(label="Map Short Description", max_length=64)
-    tags = ui.TextInput(label="Map Tags (Separated by commas and no spaces. Comma not required for only one tag.)", max_length=256)
+    tags = ui.TextInput(label="Map Tags. Separated by commas and no spaces.", max_length=256)
 
     oldMapName = ""
     mapEntry = None
