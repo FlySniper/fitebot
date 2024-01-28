@@ -16,9 +16,11 @@ from commands.map_commands import getMaps, getMapsField, delMap, mapAdd, isInMap
     EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE, MAP_MODE_TAGS_OR_NAME, MAP_MODE_NAME, MAP_MODE_TAGS, \
     getMapTagField, getMapNameField, EDIT_SHORT_DESCRIPTION
 from commands.mmr_commands import score_match, register, stats, placements, decay
+from commands.player_ban_commands import simultaneousBans
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
 from controller.seasons import scheduleSeason, getNextSeason
+from model.memory import bans, bans_submitted, bans_channel
 from model import db
 from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
@@ -57,6 +59,29 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         if isinstance(message.channel, discord.channel.DMChannel):
             connectDb()
+            if message.author.id in bans.keys():
+                opponent_id = bans[message.author.id]
+                if opponent_id in bans_submitted:
+                    embed = discord.embeds.Embed()
+                    embed.title = "Completed Bans"
+                    embed.description = f"You banned: {message.content}. Posted in <#{bans_channel[message.author.id]}>"
+                    await message.channel.send(embed=embed)
+                    embed = discord.embeds.Embed()
+                    embed.title = "Completed Bans"
+                    embed.description = f"<@!{message.author.id}> banned: {message.content}\n" \
+                                        f"<@!{opponent_id}> banned: {bans_submitted[opponent_id]}"
+                    channel = client.get_channel(bans_channel[message.author.id])
+                    await channel.send(embed=embed)
+                    del bans_channel[message.author.id]
+                    del bans_submitted[opponent_id]
+                    del bans_channel[opponent_id]
+                else:
+                    bans_submitted[message.author.id] = message.content
+                    del bans[message.author.id]
+                    embed = discord.embeds.Embed()
+                    embed.title = "Bans Underway"
+                    embed.description = f"You banned: {message.content}. Waiting for your opponent"
+                    await message.channel.send(embed=embed)
             if isInMapAddSession(message.author.id):
                 session = getMapAddSession(message.author.id)
                 if session.isExpired():
@@ -364,7 +389,31 @@ class MyClient(discord.Client):
             if commandArgs[0] == "logs":
                 pass
             if commandArgs[0] == "startbans":
-                pass
+                embed = discord.embeds.Embed()
+                embed.title = "Start Bans Error"
+                embed.description = "Error: Please @ your opponent as an argument"
+                if len(commandArgs) == 2:
+                    try:
+                        if (commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[1].endswith(">") and (
+                                commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[1].endswith(">"):
+                            opponent: str = commandArgs[1].replace("<", "").replace("@", "").replace("!", "").replace(">", "")
+                            player = message.author.id
+                            if opponent.isnumeric() and int(opponent) != player:
+                                opponent_id = int(opponent)
+                                await simultaneousBans(client, message.channel.id, player, opponent_id)
+                            else:
+                                await message.channel.send(
+                                    embed=embed)
+                                return
+                    except ValueError:
+                        await message.channel.send(
+                            embed=embed)
+                        return
+                else:
+                    await message.channel.send(
+                        embed=embed)
+                    return
+
         if message.channel.id in config["admin-channels"]:
             connectDb()
             if commandArgs[0] == "addmap":

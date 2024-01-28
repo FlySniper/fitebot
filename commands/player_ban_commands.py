@@ -1,33 +1,20 @@
-# import discord
-# from model.config import config
-#
-#
-# class SimultaneousBansEntry:
-#     entryId = 0
-#     otherEntryId = 0
-#     bans = ""
-#
-#     def __init__(self, entryId, otherEntryId):
-#         self.entryId = entryId
-#         self.otherEntryId = otherEntryId
-#
-#     def setBans(self, bans):
-#         self.bans = bans
-#
-# async def simultaneousBans(author, args):
-#     user1 = author.id
-#     authorDm = await author.create_dm()
-#     if len(args) == 2:
-#         user2 = args[1]
-#     else:
-#         embed = discord.embeds.Embed()
-#         embed.title = "Bans Error"
-#         embed.color = 0x20872c
-#         embed.description = "Error: You must @ one opponent as your argument `%s startbans @opponent#1234`".format(config["command-prefix"])
-#         return embed
-#     if (user1.startswith("<@") or user1.startswith("<!@")) and user1.endswith(">") and (
-#             user2.startswith("<@") or user2.startswith("<!@")) and user2.endswith(">"):
-#         id1 = user1.replace("<", "").replace("@", "").replace("!", "").replace(">", "")
-#         id2 = user2.replace("<", "").replace("@", "").replace("!", "").replace(">", "")
-#         if id1.isnumeric() and id2.isnumeric() and id1 != id2:
-pass
+import discord
+from model.config import config
+from model.memory import bans, bans_channel
+
+
+async def simultaneousBans(client: discord.Client, channel_id: int, player: int, opponent_id: int):
+    player_obj = await client.fetch_user(player)
+    opponent_obj = await client.fetch_user(opponent_id)
+    player_dm = await player_obj.create_dm()
+    opponent_dm = await opponent_obj.create_dm()
+    if player_dm is not None and opponent_dm is not None:
+        embed = discord.embeds.Embed()
+        embed.title = "Start Bans"
+        embed.description = "Please enter your bans separated by a comma"
+        await player_dm.send(embed=embed)
+        await opponent_dm.send(embed=embed)
+        bans[player] = opponent_id
+        bans[opponent_id] = player
+        bans_channel[player] = channel_id
+        bans_channel[opponent_id] = channel_id
