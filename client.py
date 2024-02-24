@@ -1,4 +1,5 @@
 import datetime
+import re
 
 import discord
 from threading import Thread
@@ -24,7 +25,7 @@ from model.memory import bans, bans_submitted, bans_channel
 from model import db
 from model.config import refreshConfig, config
 from model.mmr_leaderboard import countLeaderboard
-from model.mmr_maps import countMaps, countTags
+from model.mmr_maps import countMaps, countTags, MapEntry, queryMapsByPostId
 from model.mmr_season import querySeason
 from views.map_views import MapViewAdd, MapViewEdit
 
@@ -56,7 +57,67 @@ class MyClient(discord.Client):
     async def setup_hook(self) -> None:
         pass
 
+    async def on_raw_thread_delete(self, payload: discord.RawThreadDeleteEvent):
+        connectDb()
+        entries = queryMapsByPostId(payload.thread_id, 0, 1)
+        if len(entries) != 0:
+            print("Forum Thread was deleted")
+            entries[0].deleteMap()
+
     async def on_message(self, message):
+        if isinstance(message.channel, discord.channel.Thread):
+            forum_channel: discord.channel.ForumChannel = message.channel.parent
+            entries = queryMapsByPostId(message.channel.id, 0, 1)
+            if len(entries) != 0:
+                mapEntry = entries[0]
+                oldName = mapEntry.name
+                if mapEntry.author != f"<@{message.author.id}>":
+                    return
+                content: str = message.content
+                result = re.search("\[[a-zA-Z0-9]*\]", content)
+                if result is not None and result.group() is not None and result.group() != "":
+                    mapEntry.short_description = result.group()[1:-2]
+                else:
+                    return
+                mapEntry.name = content[:result.start()]
+                mapEntry.author = f"<@{message.author.id}>"
+                mapEntry.description = content[result.end():]
+                if len(message.attachments) != 0:
+                    mapEntry.link = message.attachments.pop(0).url
+                tags: [discord.ForumTag] = message.channel.applied_tags
+                if len(tags) == 0:
+                    return
+                tags_str = ",".join([tag.name for tag in tags])
+                if "nobot" in tags_str.lower():
+                    mapEntry.deleteMap()
+                    return
+                mapEntry.postId = message.channel.id
+                print("Forum Thread was updated")
+                mapEntry.updateMap(oldName)
+            elif forum_channel.id in config["map-forums"]:
+                thread: discord.channel.Thread = message.channel
+                op_message = thread.starter_message
+                connectDb()
+                mapEntry = MapEntry()
+                result = re.search("\[[a-zA-Z0-9]*\]", thread.name)
+                if result is not None and result.group() is not None and result.group() != "":
+                    mapEntry.short_description = result.group()[1:-2]
+                else:
+                    return
+                mapEntry.name = thread.name
+                mapEntry.author = f"<@{op_message.author.id}>"
+                mapEntry.description = op_message.content
+                if len(op_message.attachments) != 0:
+                    mapEntry.link = op_message.attachments.pop(0).url
+                tags: [discord.ForumTag] = thread.applied_tags
+                if len(tags) == 0:
+                    return
+                tags_str = ",".join([tag.name for tag in tags])
+                if "nobot" in tags_str.lower():
+                    return
+                mapEntry.postId = thread.id
+                mapEntry.insertMap(tags_str)
+                print("Forum Thread was created")
         if isinstance(message.channel, discord.channel.DMChannel):
             connectDb()
             if message.author.id in bans.keys():
@@ -394,9 +455,12 @@ class MyClient(discord.Client):
                 embed.description = "Error: Please @ your opponent as an argument"
                 if len(commandArgs) == 2:
                     try:
-                        if (commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[1].endswith(">") and (
-                                commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[1].endswith(">"):
-                            opponent: str = commandArgs[1].replace("<", "").replace("@", "").replace("!", "").replace(">", "")
+                        if (commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[
+                            1].endswith(">") and (
+                                commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[
+                            1].endswith(">"):
+                            opponent: str = commandArgs[1].replace("<", "").replace("@", "").replace("!", "").replace(
+                                ">", "")
                             player = message.author.id
                             if opponent.isnumeric() and int(opponent) != player:
                                 opponent_id = int(opponent)

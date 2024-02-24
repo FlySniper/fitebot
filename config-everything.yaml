@@ -22,6 +22,9 @@ command-channels: # Channels for regular commands
   - 631861137687707656
   - 706545364735623224
 
+map-forums:
+  - 1163643966378487888
+
 command-prefix: "!"
 enable-website-linking: true # Allow map results to link to an external website. Setting this to false, removes the website prompt when adding a new map
 enable-media-linking: true # Allow map results to link to a media source. Setting this to false, removes the media prompt when adding a new map
