@@ -88,12 +88,12 @@ class MyClient(discord.Client):
                 if len(tags) == 0:
                     return
                 tags_str = ",".join([tag.name for tag in tags])
-                if "nobot" in tags_str.lower():
+                if "no bot" in tags_str.lower():
                     mapEntry.deleteMap()
                     return
                 mapEntry.postId = message.channel.id
-                print("Forum Thread was updated")
                 mapEntry.updateMap(oldName)
+                print("Forum Thread was updated")
             elif forum_channel.id in config["map-forums"]:
                 thread: discord.channel.Thread = message.channel
                 op_message = thread.starter_message
@@ -113,7 +113,7 @@ class MyClient(discord.Client):
                 if len(tags) == 0:
                     return
                 tags_str = ",".join([tag.name for tag in tags])
-                if "nobot" in tags_str.lower():
+                if "no bot" in tags_str.lower():
                     return
                 mapEntry.postId = thread.id
                 mapEntry.insertMap(tags_str)
