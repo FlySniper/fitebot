@@ -108,8 +108,8 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=mapEmbed)
                     print("Forum Thread was updated")
 
-            elif message.content.lower().startswith(config["command-prefix"] + "track"):# and \
-                #    message.author.id == (await message.channel.fetch_message(message.channel.id)).author.id:
+            elif message.content.lower().startswith(config["command-prefix"] + "track") and \
+                    message.author.id == (await message.channel.fetch_message(message.channel.id)).author.id:
 
                 thread: discord.channel.Thread = message.channel
                 op_message = await thread.fetch_message(thread.id)
