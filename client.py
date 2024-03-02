@@ -71,30 +71,82 @@ class MyClient(discord.Client):
             if len(entries) != 0:
                 mapEntry = entries[0]
                 oldName = mapEntry.name
+                errorEmbed = discord.Embed()
                 if mapEntry.author != f"<@{message.author.id}>":
                     return
-                content: str = message.content
-                result = re.search("\[[a-zA-Z0-9]*\]", content)
+                content: str = (await message.channel.fetch_message(message.channel.id)).content
+                if message.content.lower().startswith(config["command-prefix"] + "update"):
+                    result = re.search("\[[a-zA-Z0-9]*\]", message.channel.name)
+                    if result is not None and result.group() is not None and result.group() != "":
+                        mapEntry.short_description = result.group()[1:-2]
+                    else:
+                        errorEmbed.title = "Error: Thread title is in an improper format"
+                        errorEmbed.description = "Please format your thread title with MAPNAME [MAPCODE]"
+                        await message.channel.send(embed=errorEmbed)
+                        return
+                    mapEntry.name = message.channel.name
+                    mapEntry.author = f"<@{message.author.id}>"
+                    mapEntry.description = content
+                    if len(message.attachments) != 0:
+                        mapEntry.link = message.attachments.pop(0).url
+                    tags: [discord.ForumTag] = message.channel.applied_tags
+                    if len(tags) == 0:
+                        errorEmbed.title = "Error: Thread has tags"
+                        errorEmbed.description = "Thread has no tags, and cannot be tracked by this bot."
+                        await message.channel.send(embed=errorEmbed)
+                        return
+                    tags_str = ",".join([tag.name for tag in tags])
+                    if "no bot" in tags_str.lower():
+                        mapEntry.deleteMap()
+                        errorEmbed.title = "Error: Thread has No Bot tag"
+                        errorEmbed.description = "Thread has the No Bot tag, removing thread from bot tracking."
+                        await message.channel.send(embed=errorEmbed)
+                        return
+                    mapEntry.postId = message.channel.id
+                    mapEntry.updateMap(oldName)
+                    mapEmbed = await getMaps(mapEntry.name, False, 1, 1, MAP_MODE_NAME)
+                    await message.channel.send(embed=mapEmbed)
+                    print("Forum Thread was updated")
+
+            elif message.content.lower().startswith(config["command-prefix"] + "track"):# and \
+                #    message.author.id == (await message.channel.fetch_message(message.channel.id)).author.id:
+
+                thread: discord.channel.Thread = message.channel
+                op_message = await thread.fetch_message(thread.id)
+                connectDb()
+                errorEmbed = discord.Embed()
+                mapEntry = MapEntry()
+                result = re.search("\[[a-zA-Z0-9]*\]", thread.name)
                 if result is not None and result.group() is not None and result.group() != "":
                     mapEntry.short_description = result.group()[1:-2]
                 else:
+                    errorEmbed.title = "Error: Thread title is in an improper format"
+                    errorEmbed.description = "Please format your thread title with MAPNAME [MAPCODE]"
+                    await message.channel.send(embed=errorEmbed)
                     return
-                mapEntry.name = content[:result.start()]
-                mapEntry.author = f"<@{message.author.id}>"
-                mapEntry.description = content[result.end():]
-                if len(message.attachments) != 0:
-                    mapEntry.link = message.attachments.pop(0).url
-                tags: [discord.ForumTag] = message.channel.applied_tags
+                mapEntry.name = thread.name
+                mapEntry.author = f"<@{op_message.author.id}>"
+                mapEntry.description = op_message.content
+                if len(op_message.attachments) != 0:
+                    mapEntry.link = op_message.attachments.pop(0).url
+                tags: [discord.ForumTag] = thread.applied_tags
                 if len(tags) == 0:
+                    errorEmbed.title = "Error: Thread has tags"
+                    errorEmbed.description = "Thread has no tags, and cannot be tracked by this bot."
+                    await message.channel.send(embed=errorEmbed)
                     return
                 tags_str = ",".join([tag.name for tag in tags])
                 if "no bot" in tags_str.lower():
-                    mapEntry.deleteMap()
+                    errorEmbed.title = "Error: Thread has No Bot tag"
+                    errorEmbed.description = "Thread has the No Bot tag, removing thread from bot tracking."
+                    await message.channel.send(embed=errorEmbed)
                     return
-                mapEntry.postId = message.channel.id
-                mapEntry.updateMap(oldName)
-                print("Forum Thread was updated")
-            elif forum_channel.id in config["map-forums"]:
+                mapEntry.postId = thread.id
+                mapEntry.insertMap(tags_str)
+                mapEmbed = await getMaps(mapEntry.name, False, 1, 1, MAP_MODE_NAME)
+                await message.channel.send(embed=mapEmbed)
+                print("Forum Thread was created")
+            elif forum_channel.id in config["map-forums"] and message.id == message.channel.id:
                 thread: discord.channel.Thread = message.channel
                 op_message = thread.starter_message
                 connectDb()
