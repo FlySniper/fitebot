@@ -113,7 +113,7 @@ def queryMapsByRandomTagOrName(tag):
     entry.short_description = result[0][5]
     entry.postId = result[0][6]
     if len(result[0]) >= 8:
-        entry.tags = result[0][8]
+        entry.tags = result[0][7]
     return entry
 
 
@@ -135,7 +135,7 @@ def queryMapsByRandomTag(tag):
     entry.short_description = result[0][5]
     entry.postId = result[0][6]
     if len(result[0]) >= 8:
-        entry.tags = result[0][8]
+        entry.tags = result[0][7]
     return entry
 
 
