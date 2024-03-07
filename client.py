@@ -186,8 +186,11 @@ class MyClient(discord.Client):
                     channel = client.get_channel(bans_channel[message.author.id])
                     await channel.send(embed=embed)
                     del bans_channel[message.author.id]
-                    del bans_submitted[opponent_id]
                     del bans_channel[opponent_id]
+                    if message.author.id in bans_submitted.keys():
+                        del bans_submitted[message.author.id]
+                    del bans_submitted[opponent_id]
+                    del bans[message.author.id]
                 else:
                     bans_submitted[message.author.id] = message.content
                     del bans[message.author.id]
