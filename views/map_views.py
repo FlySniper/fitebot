@@ -125,7 +125,7 @@ class MapForm1(ui.Modal):
 
 
 class MapForm2(ui.Modal):
-    description = ui.TextInput(label="Map Description", style=discord.TextStyle.paragraph, max_length=256,
+    description = ui.TextInput(label="Map Description", style=discord.TextStyle.paragraph, max_length=2048,
                                required=False)
     shortDescription = ui.TextInput(label="Map Short Description", max_length=64, required=False)
 
