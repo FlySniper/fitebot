@@ -1,5 +1,5 @@
 import discord
-from model.config import config
+import random
 from model.memory import bans, bans_channel
 
 
@@ -18,3 +18,22 @@ async def simultaneousBans(client: discord.Client, channel_id: int, player: int,
         bans[opponent_id] = player
         bans_channel[player] = channel_id
         bans_channel[opponent_id] = channel_id
+
+
+async def coin(player1: int, player2: int | None):
+    value = random.randint(0, 1) == 1
+    message = "Heads" if value else "Tails"
+    if player2 is None:
+        embed = discord.embeds.Embed()
+        embed.title = f"{message}!"
+        embed.description = f"<@{player1}> flips a coin and it lands on **{message}!**"
+        embed.color = 0x20872c
+        return embed
+    else:
+        winning_player = player1 if value else player2
+        losing_player = player2 if value else player1
+        embed = discord.embeds.Embed()
+        embed.title = f"{message}!"
+        embed.description = f"<@{winning_player}> called {message} and won the coin flip against <@{losing_player}>!"
+        embed.color = 0x20872c
+        return embed

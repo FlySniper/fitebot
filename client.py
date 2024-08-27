@@ -17,7 +17,7 @@ from commands.map_commands import getMaps, getMapsField, delMap, mapAdd, isInMap
     EDIT_LINK, EDIT_DESCRIPTION, EDIT_TAGS, EDIT_WEBSITE, MAP_MODE_TAGS_OR_NAME, MAP_MODE_NAME, MAP_MODE_TAGS, \
     getMapTagField, getMapNameField, EDIT_SHORT_DESCRIPTION
 from commands.mmr_commands import score_match, register, stats, placements, decay
-from commands.player_ban_commands import simultaneousBans
+from commands.match_setup_commands import simultaneousBans, coin
 from commands.queue_commands import queue, cancel
 from controller.pagination import reactWithPaginationEmojis, arrowEmojiReaction, arrowEmojiReactionMapTag
 from controller.seasons import scheduleSeason, getNextSeason
@@ -532,6 +532,28 @@ class MyClient(discord.Client):
                     await message.channel.send(
                         embed=embed)
                     return
+            if commandArgs[0] == "coin":
+                player = message.author.id
+                if len(commandArgs) == 2:
+                    try:
+                        if (commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[
+                            1].endswith(">") and (
+                                commandArgs[1].startswith("<@") or commandArgs[1].startswith("<!@")) and commandArgs[
+                            1].endswith(">"):
+                            opponent: str = commandArgs[1].replace("<", "").replace("@", "").replace("!", "").replace(
+                                ">", "")
+                            if opponent.isnumeric() and int(opponent) != player:
+                                opponent_id = int(opponent)
+                                await message.channel.send(embed=await coin(player, opponent_id))
+                            else:
+                                await message.channel.send(embed=await coin(player, None))
+                                return
+                    except ValueError:
+                        await message.channel.send(embed=await coin(player, None))
+                        return
+                else:
+                    await message.channel.send(embed=await coin(player, None))
+                    return
 
         if message.channel.id in config["admin-channels"]:
             connectDb()
@@ -857,5 +879,20 @@ slashCommand.add_command(discord.app_commands.Command(name="season",
                                                       description="View the current season. Use /season <number> to see the leaderboard for that season.",
                                                       callback=seasonCommand,
                                                       guild_ids=DEBUG_GUILD_IDS))
+
+
+async def coinCommand(interaction: Interaction, opponent: discord.Member | None):
+    await interaction.response.defer()
+    if opponent is None:
+        await interaction.followup.send(embed=await coin(interaction.user.id, None))
+    else:
+        await interaction.followup.send(embed=await coin(interaction.user.id, opponent.id))
+
+
+command = discord.app_commands.Command(name="coin",
+                                       description="Type /coin or /coin @opponent#1234 to flip a coin with someone.",
+                                       callback=coinCommand,
+                                       guild_ids=DEBUG_GUILD_IDS)
+slashCommand.add_command(command)
 
 client.run(config["discord-bot-token"])
