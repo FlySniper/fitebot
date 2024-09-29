@@ -2,6 +2,7 @@ import discord
 from discord import ui, Interaction
 from discord._types import ClientT
 
+from model.mmr_leaderboard import LeaderboardEntry
 from model.mmr_maps import queryMapsByName, MapEntry
 
 
@@ -54,6 +55,60 @@ class MapViewAddContinue(discord.ui.View):
     async def ContinueAddMap(self, interaction: discord.Interaction, button: discord.Button):
         mapForm2 = MapForm2(self.incompleteMapEntry)
         await interaction.response.send_modal(mapForm2)
+
+
+class MapViewVote(discord.ui.View):
+    mapName = ""
+
+    def __init__(self, mapName):
+        self.mapName = mapName
+        super().__init__()
+
+    @discord.ui.button(label="Upvote", custom_id="UpvoteButton", style=discord.ButtonStyle.green)
+    async def UpVoteMap(self, interaction: discord.Interaction, button: discord.Button):
+        leaderboardEntry = LeaderboardEntry(interaction.user.id)
+        if leaderboardEntry is None:
+            await interaction.response.send_message(f"You need to be registered to play ranked in order to vote.",
+                                                    ephemeral=True)
+            return
+        mapEntries = queryMapsByName(self.mapName, 0, 2)
+        if len(mapEntries) == 0:
+            await interaction.response.send_message(
+                f"{self.mapName} does not exist. Please add the map instead.", ephemeral=True)
+            return
+        if len(mapEntries) >= 2:
+            await interaction.response.send_message(
+                f"{self.mapName} has a duplicate. Please remove the duplicate.", ephemeral=True)
+            return
+        mapEntry = mapEntries[0]
+        mapEntry.updateMapVote(interaction.user.id, up_vote=1)
+        mapEntry = queryMapsByName(self.mapName, 0, 2)[0]
+        await interaction.response.send_message(
+            f"You upvoted {self.mapName} ({mapEntry.up_votes}/{mapEntry.up_votes + mapEntry.down_votes})",
+            ephemeral=True)
+
+    @discord.ui.button(label="Downvote", custom_id="DownvoteButton", style=discord.ButtonStyle.red)
+    async def DownVoteMap(self, interaction: discord.Interaction, button: discord.Button):
+        leaderboardEntry = LeaderboardEntry(interaction.user.id)
+        if leaderboardEntry is None:
+            await interaction.response.send_message(f"You need to be registered to play ranked in order to vote.",
+                                                    ephemeral=True)
+            return
+        mapEntries = queryMapsByName(self.mapName, 0, 2)
+        if len(mapEntries) == 0:
+            await interaction.response.send_message(
+                f"{self.mapName} does not exist. Please add the map instead.", ephemeral=True)
+            return
+        if len(mapEntries) >= 2:
+            await interaction.response.send_message(
+                f"{self.mapName} has a duplicate. Please remove the duplicate.", ephemeral=True)
+            return
+        mapEntry = mapEntries[0]
+        mapEntry.updateMapVote(interaction.user.id, down_vote=1)
+        mapEntry = queryMapsByName(self.mapName, 0, 2)[0]
+        await interaction.response.send_message(
+            f"You downvoted {self.mapName} ({mapEntry.up_votes}/{mapEntry.up_votes + mapEntry.down_votes})",
+            ephemeral=True)
 
 
 class MapForm1(ui.Modal):

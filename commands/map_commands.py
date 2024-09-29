@@ -1,10 +1,12 @@
 import datetime
+import calendar
 
 import discord
 
 from model.config import config
 from model.mmr_maps import MapEntry, queryMapsByTagOrName, queryMapsByRandomTagOrName, queryTags, queryMapsByName, \
     queryMapsByTag, queryMapsByRandomTag
+from views.map_views import MapViewVote
 
 EDIT_NAME = "edit name"
 EDIT_AUTHOR = "edit author"
@@ -142,29 +144,27 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode, suggested=False):
             embed.title = "Suggested Map: {name}".format(name=entry.name)
         else:
             embed.title = "Your Random Map: {name}".format(name=entry.name)
-        embed.description = "{description}\nAuthor: {author}".format(description=entry.description, author=entry.author)
+        embed.description = "{description}\nAuthor: {author}\nLast Updated: <t:{updated}:f>\nUpvotes: {up_votes}/{total_votes}".format(description=entry.description, author=entry.author, updated=calendar.timegm(entry.updated_date.timetuple()), up_votes=entry.up_votes, total_votes=entry.up_votes+entry.down_votes)
         embed.set_image(url=entry.link)
         embed.color = 0x20872c
-        return embed
+        return embed, MapViewVote(entry.name)
     if len(mapEntries) == 0:
         embed = discord.embeds.Embed()
         embed.title = "Map Error"
         embed.description = errorMessage
-        return embed
+        return embed, None
 
     if len(mapEntries) == 1:
         entry = mapEntries[0]
         embed = discord.embeds.Embed()
         embed.title = "Map Found: {name}".format(name=entry.name)
-        embed.description = "{description}\nAuthor: {author}".format(description=entry.description, author=entry.author)
+        embed.description = "{description}\nAuthor: {author}\nLast Updated: <t:{updated}:f>\nUpvotes: {up_votes}/{total_votes}".format(description=entry.description, author=entry.author, updated=calendar.timegm(entry.updated_date.timetuple()), up_votes=entry.up_votes, total_votes=entry.up_votes+entry.down_votes)
         if config["enable-media-linking"] and entry.link is not None and len(entry.link) > 0:
             embed.set_image(url=entry.link)
         embed.color = 0x20872c
         if config["enable-website-linking"] and entry.website is not None and len(entry.website) > 0:
             embed.url = entry.website
-            return embed
-        else:
-            return embed
+        return embed, MapViewVote(entry.name)
 
     description = "***Map name (version) — Summary***"
     fieldValue = ""
@@ -180,7 +180,7 @@ async def getMaps(tag, isRandom, pageNum, mapsPerPage, mode, suggested=False):
     embed.add_field(name="{:d}-{:d}".format(startIndex + 1, startIndex + mapsPerPage),
                     value=fieldValue)
     embed.color = 0x20872c
-    return embed
+    return embed, None
 
 
 async def getMapTags(start, end):

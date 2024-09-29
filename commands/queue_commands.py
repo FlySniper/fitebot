@@ -126,7 +126,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
             if queueConfig["uses-bans"]:
                 finalText += "\nBans Underway"
                 # TODO Implement Bans
-            mapEmbed = await getMaps(queueConfig["maptags"], True, 1, 1, MAP_MODE_TAGS, queueConfig["suggested-text"])
+            mapEmbed, voteView = await getMaps(queueConfig["maptags"], True, 1, 1, MAP_MODE_TAGS, queueConfig["suggested-text"])
             embed = discord.embeds.Embed()
             embed.title = "Queue"
             embed.color = 0x20872c
@@ -135,7 +135,7 @@ async def queue(id, queueName, timeLimit, channel, bot):
             await channelObj.send(finalText)
             for entry in validQueueEntries:
                 entry.deleteUser()
-            await channelObj.send(embed=mapEmbed)
+            await channelObj.send(embed=mapEmbed, view=voteView)
         else:
             for entry in currentQueue:
                 currentDateTime = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)

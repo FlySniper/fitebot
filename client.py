@@ -104,8 +104,8 @@ class MyClient(discord.Client):
                         return
                     mapEntry.postId = message.channel.id
                     mapEntry.updateMap(oldName)
-                    mapEmbed = await getMaps(mapEntry.name, False, 1, 1, MAP_MODE_NAME)
-                    await message.channel.send(embed=mapEmbed)
+                    mapEmbed, voteView = await getMaps(mapEntry.name, False, 1, 1, MAP_MODE_NAME)
+                    await message.channel.send(embed=mapEmbed, view=voteView)
                     print("Forum Thread was updated")
 
             elif message.content.lower().startswith(config["command-prefix"] + "track") and \
@@ -143,8 +143,8 @@ class MyClient(discord.Client):
                     return
                 mapEntry.postId = thread.id
                 mapEntry.insertMap(tags_str)
-                mapEmbed = await getMaps(mapEntry.name, False, 1, 1, MAP_MODE_NAME)
-                await message.channel.send(embed=mapEmbed)
+                mapEmbed, voteView = await getMaps(mapEntry.name, False, 1, 1, MAP_MODE_NAME)
+                await message.channel.send(embed=mapEmbed, view=voteView)
                 print("Forum Thread was created")
             elif forum_channel.id in config["map-forums"] and message.id == message.channel.id:
                 thread: discord.channel.Thread = message.channel
@@ -367,9 +367,9 @@ class MyClient(discord.Client):
                         group = " ".join(commandArgs[1:len(commandArgs) - 1])
                     else:
                         group = " ".join(commandArgs[1:])
-                embed = await getMaps(group, isRandom, page, 20, MAP_MODE_TAGS_OR_NAME)
+                embed, voteView = await getMaps(group, isRandom, page, 20, MAP_MODE_TAGS_OR_NAME)
                 try:
-                    mapsEmbed = await message.channel.send(embed=embed)
+                    mapsEmbed = await message.channel.send(embed=embed, view=voteView)
                     if mapsEmbed.embeds[0].title.startswith("Maps Found"):
                         await reactWithPaginationEmojis(mapsEmbed)
                 except discord.errors.HTTPException as ex:
@@ -385,9 +385,9 @@ class MyClient(discord.Client):
                         group = " ".join(commandArgs[1:len(commandArgs) - 1])
                     else:
                         group = " ".join(commandArgs[1:])
-                embed = await getMaps(group, isRandom, page, 20, MAP_MODE_TAGS)
+                embed, voteView = await getMaps(group, isRandom, page, 20, MAP_MODE_TAGS)
                 try:
-                    mapsEmbed = await message.channel.send(embed=embed)
+                    mapsEmbed = await message.channel.send(embed=embed, view=voteView)
                     if mapsEmbed.embeds[0].title.startswith("Maps in Tag"):
                         await reactWithPaginationEmojis(mapsEmbed)
                 except discord.errors.HTTPException:
@@ -397,9 +397,9 @@ class MyClient(discord.Client):
                 group = "all"
                 if len(commandArgs) > 1:
                     group = " ".join(commandArgs[1:])
-                embed = await getMaps(group, False, page, 20, MAP_MODE_NAME)
+                embed, voteView = await getMaps(group, False, page, 20, MAP_MODE_NAME)
                 try:
-                    mapsEmbed = await message.channel.send(embed=embed)
+                    mapsEmbed = await message.channel.send(embed=embed, view=voteView)
                     if mapsEmbed.embeds[0].title.startswith("Maps with Name"):
                         await reactWithPaginationEmojis(mapsEmbed)
                 except discord.errors.HTTPException:
@@ -669,9 +669,12 @@ slashCommand = app_commands.CommandTree(client)
 async def mapsCommand(interaction: Interaction, query: str = "all", random: bool = False):
     await interaction.response.defer()
     page = 1
-    embed = await getMaps(query, random, page, 20, MAP_MODE_TAGS_OR_NAME)
+    embed, voteView = await getMaps(query, random, page, 20, MAP_MODE_TAGS_OR_NAME)
     try:
-        mapsEmbed = await interaction.followup.send(embed=embed)
+        if voteView is None:
+            mapsEmbed = await interaction.followup.send(embed=embed)
+        else:
+            mapsEmbed = await interaction.followup.send(embed=embed, view=voteView)
         if mapsEmbed.embeds[0].title.startswith("Maps Found"):
             await reactWithPaginationEmojis(mapsEmbed)
     except discord.errors.HTTPException:
@@ -780,9 +783,12 @@ slashCommand.add_command(discord.app_commands.Command(name="map-tags",
 
 async def mapTagCommand(interaction: Interaction, tag: str = "all", random: bool = False):
     await interaction.response.defer()
-    embed = await getMaps(tag, random, 1, 20, MAP_MODE_TAGS)
+    embed, voteView = await getMaps(tag, random, 1, 20, MAP_MODE_TAGS)
     try:
-        mapsEmbed = await interaction.followup.send(embed=embed)
+        if voteView is None:
+            mapsEmbed = await interaction.followup.send(embed=embed)
+        else:
+            mapsEmbed = await interaction.followup.send(embed=embed, view=voteView)
         if mapsEmbed.embeds[0].title.startswith("Maps in Tag"):
             await reactWithPaginationEmojis(mapsEmbed)
     except discord.errors.HTTPException:
@@ -797,9 +803,12 @@ slashCommand.add_command(discord.app_commands.Command(name="map-tag",
 
 async def mapNameCommand(interaction: Interaction, name: str = "all"):
     await interaction.response.defer()
-    embed = await getMaps(name, False, 1, 20, MAP_MODE_NAME)
+    embed, voteView = await getMaps(name, False, 1, 20, MAP_MODE_NAME)
     try:
-        mapsEmbed = await interaction.followup.send(embed=embed)
+        if voteView is None:
+            mapsEmbed = await interaction.followup.send(embed=embed)
+        else:
+            mapsEmbed = await interaction.followup.send(embed=embed, view=voteView)
         if mapsEmbed.embeds[0].title.startswith("Maps with Name"):
             await reactWithPaginationEmojis(mapsEmbed)
     except discord.errors.HTTPException:
