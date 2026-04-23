@@ -128,7 +128,7 @@ class MyClient(discord.Client):
                 mapEntry.author = f"<@{op_message.author.id}>"
                 mapEntry.description = op_message.content
                 if len(op_message.attachments) != 0:
-                    mapEntry.link = op_message.attachments.pop(0).url
+                    mapEntry.link = op_message.attachments[0].url
                 tags: [discord.ForumTag] = thread.applied_tags
                 if len(tags) == 0:
                     errorEmbed.title = "Error: Thread has tags"
@@ -151,7 +151,7 @@ class MyClient(discord.Client):
                 op_message = thread.starter_message
                 connectDb()
                 mapEntry = MapEntry()
-                result = re.search("\[[a-zA-Z0-9]*\]", thread.name)
+                result = re.search("\[[a-zA-Z0-9]*]", thread.name)
                 if result is not None and result.group() is not None and result.group() != "":
                     mapEntry.short_description = result.group()[1:-2]
                 else:

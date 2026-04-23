@@ -25,7 +25,7 @@ def queryTagsByMapName(name):
 
 
 def queryMapsByPostId(postId, start, count):
-    results = dbQuery("SELECT * FROM mmr_maps WHERE postId = %s LIMIT %s, %s", (postId, start, count))
+    results = dbQuery("SELECT * FROM mmr_maps WHERE postId = %s ORDER BY(up_votes - down_votes) DESC LIMIT %s, %s", (postId, start, count))
     if results is None or len(results) == 0:
         return []
     entries = []
@@ -37,10 +37,10 @@ def queryMapsByPostId(postId, start, count):
 
 def queryMapsByTagOrName(tag, start, count):
     if tag.lower() == "all":
-        results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
+        results = dbQuery("SELECT * FROM mmr_maps ORDER BY(up_votes - down_votes) DESC LIMIT %s, %s", (start, count))
     else:
         results = dbQuery(
-            "SELECT name, author, link, website, description, short_description, postId, created_date, updated_date, up_votes, down_votes, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) LIMIT %s, %s",
+            "SELECT name, author, link, website, description, short_description, postId, created_date, updated_date, up_votes, down_votes, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s OR name LIKE %s GROUP BY(name) ORDER BY(up_votes - down_votes) DESC LIMIT %s, %s",
             (tag, "%" + tag + "%", start, count))
     if results is None or len(results) == 0:
         return []
@@ -71,10 +71,10 @@ def create_map_entry(result):
 
 def queryMapsByTag(tag, start, count):
     if tag.lower() == "all":
-        results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
+        results = dbQuery("SELECT * FROM mmr_maps ORDER BY(up_votes - down_votes) DESC LIMIT %s, %s", (start, count))
     else:
         results = dbQuery(
-            "SELECT name, author, link, website, description, short_description, postId, created_date, updated_date, up_votes, down_votes, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s GROUP BY(name) LIMIT %s, %s",
+            "SELECT name, author, link, website, description, short_description, postId, created_date, updated_date, up_votes, down_votes, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE mapTag = %s GROUP BY(name) ORDER BY(up_votes - down_votes) DESC LIMIT %s, %s",
             (tag, start, count))
     if results is None or len(results) == 0:
         return []
@@ -87,10 +87,10 @@ def queryMapsByTag(tag, start, count):
 
 def queryMapsByName(tag, start, count):
     if tag.lower() == "all":
-        results = dbQuery("SELECT * FROM mmr_maps LIMIT %s, %s", (start, count))
+        results = dbQuery("SELECT * FROM mmr_maps ORDER BY(up_votes - down_votes) DESC LIMIT %s, %s", (start, count))
     else:
         results = dbQuery(
-            "SELECT name, author, link, website, description, short_description, postId, created_date, updated_date, up_votes, down_votes, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE name = %s GROUP BY(name) LIMIT %s, %s",
+            "SELECT name, author, link, website, description, short_description, postId, created_date, updated_date, up_votes, down_votes, mapTag FROM mmr_maps m INNER JOIN mmr_maps_tags t ON m.name = t.mapName WHERE name = %s GROUP BY(name) ORDER BY(up_votes - down_votes) DESC LIMIT %s, %s",
             (tag, start, count))
     if results is None or len(results) == 0:
         return []
