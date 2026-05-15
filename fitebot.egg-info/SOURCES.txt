@@ -1,0 +1,6 @@
+README.md
+setup.py
+fitebot.egg-info/PKG-INFO
+fitebot.egg-info/SOURCES.txt
+fitebot.egg-info/dependency_links.txt
+fitebot.egg-info/top_level.txt
